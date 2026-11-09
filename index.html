@@ -3,136 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Pregão PRO</title>
+    <title>Elite Pregão Pro | Sistema de Gestão de Licitações B2B</title>
+    
+    <!-- Tipografia e Biblioteca de Ícones de Alta Performance -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com"></script>
+
     <style>
-        body { background: #0b0f19; color: #fff; font-family: sans-serif; display: flex; margin: 0; height: 100vh; }
-        aside { width: 240px; background: #131c2e; padding: 20px; border-right: 1px solid #1e2d4a; }
-        main { flex: 1; padding: 20px; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .card { background: #131c2e; border: 1px solid #1e2d4a; border-radius: 8px; padding: 20px; }
-        .item { background: #0b0f19; padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #1e2d4a; }
-        .btn { background: #2563eb; color: #fff; padding: 8px 12px; text-decoration: none; border-radius: 4px; display: inline-block; font-size: 0.85rem; font-weight: bold; border: none; cursor: pointer; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .pncp { background: rgba(245,158,11,0.2); color: #f59e0b; }
-        .gov { background: rgba(37,99,235,0.2); color: #2563eb; }
-        .upload-box { border: 2px dashed #1e2d4a; padding: 20px; text-align: center; border-radius: 6px; background: rgba(0,0,0,0.2); cursor: pointer; }
-    </style>
-</head>
-<body>
+        :root {
+            --bg-principal: #090d16;
+            --bg-card: #111827;
+            --bg-workspace: #1f2937;
+            --borda: #374151;
+            
+            --primaria: #3b82f6;       /* Azul Operacional */
+            --sucesso: #10b981;        /* Verde Ganho */
+            --alerta: #f59e0b;         /* Amarelo Análise/PNCP */
+            --perigo: #ef4444;         /* Vermelho Perdido */
+            
+            --texto-principal: #f9fafb;
+            --texto-secundario: #9ca3af;
+            --texto-mutado: #6b7280;
+        }
 
-    <aside>
-        <h2>Elite Pregão <span style="color:#10b981">PRO</span></h2>
-        <p style="color:#94a3b8; font-size:0.85rem;">Painel Unificado</p>
-        <hr style="border-color:#1e2d4a; margin:20px 0;">
-        <p>• Painel Geral</p>
-        <p style="color:#94a3b8; margin-top:15px;">• Radar PNCP</p>
-        <p style="color:#94a3b8; margin-top:15px;">• Robô Sniper</p>
-    </aside>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    <main>
-        <header style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <h1 style="margin:0; font-size:1.6rem;">Plataforma Integrada de Alto Impacto</h1>
-                <p style="color:#94a3b8; margin:5px 0 0 0; font-size:0.9rem;">Oportunidades, Leilões e Inteligência Artificial</p>
-            </div>
-            <div style="background:rgba(16,185,129,0.2); color:#10b981; padding:10px; border-radius:6px; font-size:0.85rem; font-weight:bold;">
-                ● ROBÔ ATIVO (0.02s)
-            </div>
-        </header>
+        body {
+            background-color: var(--bg-principal);
+            color: var(--texto-principal);
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-        <div class="grid">
-            <!-- OPORTUNIDADES EM TEMPO REAL -->
-            <div class="card" style="grid-column: span 2;">
-                <h3>📡 Oportunidades em Tempo Real</h3>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:15px;">Monitorando portais federais e estaduais</p>
-                
-                <div id="lista-oportunidades">
-                    <div class="item" style="display:flex; justify-content:between; align-items:center; gap:20px;">
-                        <div style="flex:1;">
-                            <h4 style="margin:0;">Pregão Eletrônico nº 12/2026 - Polícia Federal</h4>
-                            <p style="margin:5px 0 0 0; font-size:0.8rem; color:#94a3b8;">Objeto: Aquisição de Servidores de TI</p>
-                            <p style="margin:5px 0 0 0; font-size:0.85rem; color:#f59e0b; font-weight:bold;">R$ 4.120.000,00</p>
-                        </div>
-                        <div>
-                            <span class="badge gov" style="display:block; text-align:center; margin-bottom:5px;">ComprasGov</span>
-                            <a href="https://www.gov.br" target="_blank" class="btn">Link Oficial</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        /* --- ISOLAMENTO CORPORATIVO (SaaS B2B Multi-Tenant) --- */
+        aside {
+            width: 260px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--borda);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
 
-            <!-- LEILÕES AO VIVO -->
-            <div class="card">
-                <h3>🔨 Leilões e Disputas Ao Vivo</h3>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:15px;">Fase de lances atualizada no milissegundo</p>
-                <div class="item" style="border-left: 4px solid #10b981;">
-                    <h5 style="margin:0; color:#10b981;">Pregão 88/2026 - INSS</h5>
-                    <p style="margin:5px 0; font-size:0.8rem; color:#94a3b8;">Fase de Lances • Item 4</p>
-                    <p style="margin:0; font-weight:bold;">Último Lance: R$ 342.000,00</p>
-                </div>
-            </div>
+        .seletor-empresa {
+            background-color: #030712;
+            border: 1px solid var(--borda);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
 
-            <!-- ANALISADOR DE EDITAL IA -->
-            <div class="card" style="grid-column: span 3;">
-                <h3>🤖 Elite IA | Análise Preditiva de Edital Avançada</h3>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:15px;">Extração instantânea de riscos jurídicos, pegadinhas e viabilidade de margem</p>
-                
-                <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                    <div class="upload-box" id="drop-zone" style="flex:1; min-width:250px;">
-                        <p style="margin:10px 0 0 0; font-weight:bold;">Clique aqui para simular a IA</p>
-                        <p style="margin:5px 0 0 0; font-size:0.75rem; color:#94a3b8;">Selecione um edital em PDF</p>
-                        <input type="file" id="file-input" style="display:none;">
-                    </div>
-                    <div style="flex:1.5; min-width:250px; display:flex; flex-direction:column; gap:10px;">
-                        <div class="item" style="margin:0; background:rgba(124,58,237,0.1);">
-                            <h5 style="margin:0; color:#a78bfa;">⚠️ Análise de Cláusulas Restritivas</h5>
-                            <p id="ia-riscos" style="margin:5px 0 0 0; font-size:0.85rem; color:#94a3b8;">Aguardando envio do edital...</p>
-                        </div>
-                        <div class="item" style="margin:0; background:rgba(16,185,129,0.1);">
-                            <h5 style="margin:0; color:#10b981;">📈 Previsão de Margem e Lucratividade</h5>
-                            <p id="ia-margem" style="margin:5px 0 0 0; font-size:0.85rem; color:#94a3b8;">Aguardando cruzamento de dados públicos...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+        .seletor-empresa select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--texto-principal);
+            font-weight: 600;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
 
-    <script>
-        // Simulador de alimentação de dados do PNCP em tempo real
-        setTimeout(() => {
-            const container = document.getElementById('lista-oportunidades');
-            const itemPncp = document.createElement('div');
-            itemPncp.className = 'item';
-            itemPncp.style.display = 'flex';
-            itemPncp.style.justifyContent = 'space-between';
-            itemPncp.style.alignItems = 'center';
-            itemPncp.style.gap = '20px';
-            itemPncp.innerHTML = `
-                <div style="flex:1;">
-                    <h4 style="margin:0;">Concorrência nº 042/2026 - Metrô de São Paulo</h4>
-                    <p style="margin:5px 0 0 0; font-size:0.8rem; color:#94a3b8;">Objeto: Manutenção de Sinalização Ferroviária</p>
-                    <p style="margin:5px 0 0 0; font-size:0.85rem; color:#f59e0b; font-weight:bold;">R$ 12.850.000,00</p>
-                </div>
-                <div>
-                    <span class="badge pncp" style="display:block; text-align:center; margin-bottom:5px;">PNCP</span>
-                    <a href="https://pncp.gov.br" target="_blank" class="btn" style="background:#f59e0b;">Link Oficial</a>
-                </div>`;
-            container.appendChild(itemPncp);
-        }, 2500);
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+        }
 
-        // Simulador da Inteligência Artificial extraindo o edital
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', () => {
-            document.getElementById('ia-riscos').innerText = "🤖 Processando documento jurídicos...";
-            document.getElementById('ia-margem').innerText = "Buscando histórico de compras...";
-            setTimeout(() => {
-                document.getElementById('ia-riscos').innerHTML = "<b>🚨 PEGADINHA ENCONTRADA:</b> A cláusula 14.2 exige capital social de 15% do lote, o que restringe e elimina concorrentes menores de forma ilegal.";
-                document.getElementById('ia-margem').innerHTML = "<b>🔥 MARGEM EXCELENTE:</b> O preço de referência do PNCP para este item está 22% acima da tabela média do mercado.";
-            }, 2000);
-        });
-    </script>
-</body>
-</html>
+        .nav-links li {
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--texto-secundario);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .nav-links li:hover, .nav-links li.active {
+            background-color: var(--borda);
+            color: var(--texto-principal);
+        }
+
+        .usuario-info {
+            border-top: 1px solid var(--borda);
+            padding-top: 16px;
+            font-size: 0.8rem;
+        }
+
+        /* --- CONTEÚDO OPERACIONAL --- */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container-modulo {
+            padding: 24px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .container-modulo.ativo {
+            display: block;
+        }
+
+        /* Cabeçalhos */
+        .header-modulo {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-modulo h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+        .header-modulo p { color: var(--texto-secundario); font-size: 0.85rem; margin-top: 4px; }
+
+        /* Filtros Regulares Indexados (Sem uso de IA para otimização de infra) */
+        .painel-filtros {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .campo-filtro label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--texto-secundario);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .campo-filtro input, .campo-filtro select {
+            width: 100%;
+            background-color: var(--bg-principal);
+            border: 1px solid var(--borda);
+            padding: 8px;
+            border-radius: 4px;
+            color: var(--texto-principal);
+            font-size: 0.85rem;
+        }
+
+        /* Lista de Oportunidades */
+        .tabela-oportunidades {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .linha-oportunidade {
+            display: grid;
+            grid-template-columns: 2fr 3fr 1.5fr 1.5fr 1fr;
+            padding: 16px;
+            border-bottom: 1px solid var(--borda);
+            align-items: center;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .linha-oportunidade:hover { background-color: rgba(255,255,255,0.02); }
+        .linha-oportunidade.cabecalho { background-color: rgba(0,0,0,0.2); font-weight: 600; color: var(--texto-secundario); }
+
+        .btn-acao {
+            background-color: var(--primaria);
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* --- KANBAN (FUNIL COMPLIANCE - BLOCO 6) --- */
+        .quadro-kanban {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            height: calc(100vh - 160px);
+            align-items: flex-start;
+        }
+
+        .coluna-kanban {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            width: 280px;
+            flex-shrink: 0;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .coluna-titulo {
+            padding: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--borda);
+            display: flex;
+            justify-content: space-between;
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .coluna-cards {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .card-negocio {
+            background-color: var(--bg-principal);
+            border: 1px solid var(--borda);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .card-negocio:hover { transform: translateY(-2px); border-color: var(--primaria); }
+
+        /* --- WORKSPACE TUDO EM UM FLUXO (BLOCO 3) --- */
+        .workspace-drawer {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 650px;
+            height: 100vh;
+            background-color: var(--bg-card);
+            border-left: 2px solid var(--borda);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .workspace-drawer.aberto { right: 0; }
+
+        .workspace-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--borda);
+            background-color: rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workspace-abas {
+            display: flex;
+            background-color: #0d1117;
+            border-bottom: 1px solid var(--borda);
+        }
+
+        .aba-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--texto-secundario);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+        }
+
+        .aba-btn.ativa {
+            color: var(--primaria);
+            border-bottom-color: var(--primaria);
+            background-color: var(--bg-card);
+        }
+
+        .workspace-conteudo {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .aba-painel { display: none; }
+        .aba-painel.ativo { display: block; }
+
+        .box-alerta-manual {
+            background-color: rgba(245,158,11,0.05);
+            border: 1px dashed var(--alerta);
+            padding: 12px;
+            border-radius: 6px;
+            color: var(--alerta);
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+        }
+
+        /* Utilitários */
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .badge-pncp { background-color: rgba(245,158,11,0.2); color: var(--alerta); }
