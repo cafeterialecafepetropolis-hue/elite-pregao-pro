@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Ícones (Phosphor Icons) -->
+    <!-- Ícones -->
     <script src="https://unpkg.com"></script>
 
     <style>
@@ -154,11 +154,6 @@
             margin-top: 4px;
         }
 
-        .acoes-header {
-            display: flex;
-            gap: 16px;
-        }
-
         .btn-status-robo {
             background-color: var(--sucesso-glow);
             color: var(--sucesso);
@@ -186,7 +181,7 @@
             100% { transform: scale(0.9); opacity: 1; }
         }
 
-        /* --- GRID DO DASHBOARD (O Diferencial) --- */
+        /* --- GRID DO DASHBOARD --- */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -236,7 +231,6 @@
             text-transform: uppercase;
         }
 
-        /* Lista de Monitoramento Ativo */
         .lista-licitacoes {
             display: flex;
             flex-direction: column;
@@ -282,7 +276,6 @@
             color: var(--sucesso);
         }
 
-        /* Painel de Insights da IA Preditiva */
         .insight-box {
             background-color: #7c3aed15;
             border: 1px dashed #7c3aed44;
@@ -303,33 +296,6 @@
             font-size: 0.85rem;
             color: var(--texto-secundario);
             line-height: 1.4;
-        }
-
-        /* Gráfico/Métricas Rápidas de Concorrentes */
-        .concorrente-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--borda);
-            font-size: 0.9rem;
-        }
-
-        .concorrente-row:last-child {
-            border: none;
-        }
-
-        .barra-agressividade {
-            width: 100px;
-            height: 6px;
-            background-color: var(--bg-principal);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .barra-progresso {
-            height: 100%;
-            background-color: var(--perigo);
         }
     </style>
 </head>
@@ -357,3 +323,27 @@
             <div class="avatar">EP</div>
             <div>
                 <p style="font-size: 0.9rem; font-weight: 600;">Licitações LTDA</p>
+                <p style="font-size: 0.75rem; color: var(--sucesso);">Plano Enterprise</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main>
+        <header>
+            <div class="titulo-pagina">
+                <h1>Painel de Controle de Alto Impacto</h1>
+                <p>Monitoramento tático, automação de lances de ultra latência e IA Preditiva.</p>
+            </div>
+            <div class="acoes-header">
+                <div class="btn-status-robo">
+                    <span class="pulse-icon"></span> MÁQUINA DE LANCES ATIVA (0.02s)
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            
+            <!-- CARD 1: OPORTUNIDADES EM TEMPO REAL -->
+            <div class="card card-duplo">
+                <div class="card-header">
