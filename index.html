@@ -1,3364 +1,2417 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useLocation } from "wouter";
-import {
-  Activity,
-  ArrowDownRight,
-  ArrowRight,
-  Bell,
-  BriefcaseBusiness,
-  Building2,
-  CalendarClock,
-  CalendarDays,
-  Check,
-  CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
-  Clock3,
-  ExternalLink,
-  FileCheck2,
-  FileText,
-  FolderOpen,
-  Gavel,
-  Home,
-  Landmark,
-  LayoutDashboard,
-  ListChecks,
-  LogOut,
-  Plus,
-  RefreshCcw,
-  Search,
-  ShieldCheck,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
-import { toast } from "sonner";
-import { startLogin } from "@/const";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
 
-const STAGES = [
-  { id: "oportunidade", label: "Oportunidade" },
-  { id: "analise", label: "Análise do edital" },
-  { id: "documentacao", label: "Documentação" },
-  { id: "proposta", label: "Proposta" },
-  { id: "disputa", label: "Disputa" },
-  { id: "habilitacao", label: "Habilitação" },
-  { id: "ganho", label: "Ganho" },
-  { id: "perdido", label: "Perdido" },
-] as const;
-const UF = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
-const fmtDate = (value?: string | Date | null, includeTime = false) => {
-  if (!value) return "Não informado pela fonte";
-  const d =
-    value instanceof Date
-      ? value
-      : /^\d{4}-\d{2}-\d{2}$/.test(value)
-        ? new Date(`${value}T12:00:00-03:00`)
-        : new Date(value);
-  if (Number.isNaN(d.getTime())) return "Não informado pela fonte";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    ...(includeTime ? { hour: "2-digit", minute: "2-digit" } : {}),
-  }).format(d);
-};
-const todaySP = () => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const val = (k: string) => parts.find(p => p.type === k)?.value ?? "";
-  return `${val("year")}-${val("month")}-${val("day")}`;
-};
-const money = (n?: string | number | null, compact = false) => {
-  if (n == null || n === "") return "Valor não informado";
-  const amount = Number(n);
-  if (!Number.isFinite(amount)) return "Valor não informado";
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    ...(compact
-      ? {
-          notation: "compact",
-          compactDisplay: "short",
-          maximumFractionDigits: 2,
-        }
-      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-  }).format(amount);
-};
-const stageName = (value: string) =>
-  STAGES.find(s => s.id === value)?.label ?? value;
-const spDateValue = (value?: string | Date | null) => {
-  if (!value) return "";
-  const d = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(d.getTime())
-    ? ""
-    : new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(d);
-};
-
-function Button({
-  children,
-  variant = "primary",
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-}) {
-  return (
-    <button className={`btn btn-${variant} ${className}`} {...props}>
-      {children}
-    </button>
-  );
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: calc(var(--radius) - 0px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
-function Field({
-  label,
-  children,
-  hint,
-}: {
-  label: string;
-  children: React.ReactNode;
-  hint?: string;
-}) {
-  return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      {children}
-      {hint && <span className="field-hint">{hint}</span>}
-    </label>
-  );
+:root {
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --navy: #142c39;
+  --navy-2: #1c3d4a;
+  --teal: #087e78;
+  --teal-dark: #076a65;
+  --teal-pale: #e8f4f1;
+  --ink: #1e2d35;
+  --muted: #6d7b82;
+  --muted-2: #8b989e;
+  --line: #e5e9e8;
+  --surface: #fff;
+  --canvas: #f6f8f7;
+  --gold: #bd8d3c;
+  --gold-pale: #fbf4e6;
+  --red: #a84e42;
+  --red-pale: #fff0ed;
+  --green: #21795b;
+  --green-pale: #eaf5ef;
+  --radius: 0.72rem;
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --primary: var(--teal);
+  --primary-foreground: #fff;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: #58a9a2;
 }
-function Empty({
-  title,
-  text,
-  action,
-}: {
-  title: string;
-  text: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="empty-state">
-      <div className="empty-icon">
-        <FolderOpen size={21} />
-      </div>
-      <h3>{title}</h3>
-      <p>{text}</p>
-      {action}
-    </div>
-  );
+* {
+  box-sizing: border-box;
 }
-function PageHeading({
-  eyebrow,
-  title,
-  detail,
-  action,
-}: {
-  eyebrow?: string;
-  title: string;
-  detail?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="page-heading">
-      <div>
-        {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-        <h1>{title}</h1>
-        {detail && <p>{detail}</p>}
-      </div>
-      {action && <div className="heading-action">{action}</div>}
-    </div>
-  );
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: 14px;
 }
-function Notice({
-  children,
-  kind = "info",
-}: {
-  children: React.ReactNode;
-  kind?: "info" | "warning" | "success" | "error";
-}) {
-  return (
-    <div className={`notice notice-${kind}`} role="status">
-      <span className="notice-mark">
-        {kind === "warning" ? "!" : kind === "success" ? "✓" : "i"}
-      </span>
-      <div>{children}</div>
-    </div>
-  );
+a {
+  color: inherit;
+  text-decoration: none;
 }
-
-export function MarketingPage() {
-  return (
-    <main className="marketing-page">
-      <header className="marketing-nav wrap">
-        <Link href="/" className="brand">
-          <span className="brand-mark">EP</span>
-          <span>
-            Elite <b>Pregão Pro</b>
-          </span>
-        </Link>
-        <nav>
-          <Link href="/planos">Planos</Link>
-          <Link href="/suporte">Suporte</Link>
-          <Button variant="secondary" onClick={startLogin}>
-            Entrar
-          </Button>
-        </nav>
-      </header>
-      <section className="hero wrap">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <span className="live-dot" /> GESTÃO DE LICITAÇÕES, EM UM SÓ LUGAR
-          </div>
-          <h1>
-            Mais clareza em cada etapa do <em>pregão.</em>
-          </h1>
-          <p>
-            Encontre oportunidades oficiais, organize prazos e acompanhe o
-            trabalho da sua empresa com origem e status sempre visíveis.
-          </p>
-          <div className="hero-actions">
-            <Button onClick={startLogin}>
-              Acessar plataforma <ArrowRight size={16} />
-            </Button>
-            <Link className="text-link" href="/termos">
-              Conheça os termos <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div className="hero-proof">
-            <ShieldCheck size={18} />
-            <span>
-              Dados empresariais separados por empresa. Integrações externas só
-              quando autorizadas.
-            </span>
-          </div>
-        </div>
-        <div className="hero-preview">
-          <div className="preview-top">
-            <span className="mini-brand">EP</span>
-            <span>VISÃO GERAL</span>
-            <span className="preview-date">AMÉRICA/SAO_PAULO</span>
-          </div>
-          <div className="preview-greeting">
-            Operação licitatória <b>em ordem.</b>
-          </div>
-          <div className="preview-stats">
-            <div>
-              <span>OPORTUNIDADES</span>
-              <b>03</b>
-              <small>no seu funil</small>
-            </div>
-            <div>
-              <span>PRAZOS PRÓXIMOS</span>
-              <b className="gold-text">02</b>
-              <small>nos próximos 7 dias</small>
-            </div>
-          </div>
-          <div className="preview-row">
-            <span className="status-pip" />{" "}
-            <div>
-              <b>Análise do edital</b>
-              <small>Pregão eletrônico · registro interno</small>
-            </div>
-            <span className="preview-arrow">→</span>
-          </div>
-          <div className="preview-row">
-            <span className="status-pip muted" />{" "}
-            <div>
-              <b>Consulta oficial PNCP</b>
-              <small>Fonte identificada · sem sincronização automática</small>
-            </div>
-            <span className="preview-arrow">↗</span>
-          </div>
-          <div className="preview-footer">
-            <span>PRÓXIMO PASSO</span>
-            <b>Revisar documentos de habilitação</b>
-          </div>
-        </div>
-      </section>
-      <section className="value-strip">
-        <div className="wrap value-grid">
-          <div>
-            <Search />
-            <b>Oportunidades oficiais</b>
-            <span>Consulta ao PNCP com link e datas separados.</span>
-          </div>
-          <div>
-            <ListChecks />
-            <b>Funil e prazos</b>
-            <span>Etapas, responsáveis e tarefas da empresa.</span>
-          </div>
-          <div>
-            <FileCheck2 />
-            <b>Habilitação organizada</b>
-            <span>Validades e documentos com acesso controlado.</span>
-          </div>
-        </div>
-      </section>
-      <section className="wrap marketing-foot">
-        <div>
-          <div className="eyebrow">TRANSPARÊNCIA SOBRE INTEGRAÇÕES</div>
-          <h2>O que é externo, continua claramente externo.</h2>
-          <p>
-            A sala de pregão é manual nesta versão. AntecipaGov, pagamentos,
-            emissão de certificados e conexões em tempo real dependem de APIs,
-            autorizações e credenciais oficiais. O produto não pede senha de
-            portal governamental e não envia lances.
-          </p>
-        </div>
-        <div className="foot-links">
-          <Link href="/privacidade">Política de Privacidade</Link>
-          <Link href="/termos">Termos de Uso</Link>
-          <Link href="/suporte">Suporte</Link>
-        </div>
-      </section>
-    </main>
-  );
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+select,
+input[type="checkbox"] {
+  cursor: pointer;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #75bdb5;
+  outline-offset: 2px;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #d8e0df;
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 10px 12px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #75bdb5;
+  box-shadow: 0 0 0 3px #087e7818;
+  outline: none;
+}
+textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+::placeholder {
+  color: #9ba7ab;
+}
+#root {
+  min-height: 100vh;
+}
+.btn {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0 15px;
+  font-weight: 650;
+  font-size: 13px;
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  color: white;
+  background: var(--teal);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--teal-dark);
+}
+.btn-secondary {
+  background: #fff;
+  color: var(--navy);
+  border-color: #dce3e2;
+}
+.btn-secondary:hover:not(:disabled) {
+  border-color: #8bbcb7;
+  background: #fbfdfc;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+.btn-danger {
+  color: #fff;
+  background: var(--red);
+}
+.inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: var(--teal-dark);
+  font-weight: 650;
+  padding: 2px;
+  cursor: pointer;
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+.text-link:hover,
+.inline-link:hover {
+  text-decoration: underline;
+}
+.wrap {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--navy);
+  font-size: 15px;
+  letter-spacing: -0.4px;
+}
+.brand b {
+  font-weight: 760;
+}
+.brand-mark,
+.mini-brand {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #fff;
+  background: var(--teal);
+  border-radius: 8px 8px 8px 2px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
 }
 
-function Onboarding({
-  userName,
-  onCreated,
-}: {
-  userName?: string | null;
-  onCreated: (id: number) => void;
-}) {
-  const [name, setName] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const create = trpc.company.create.useMutation({
-    onSuccess: value => {
-      toast.success("Empresa cadastrada.");
-      onCreated(value.id);
-    },
-    onError: e => toast.error(e.message),
-  });
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    create.mutate({ name, cnpj });
-  };
-  return (
-    <div className="onboarding-wrap">
-      <div className="onboarding-card">
-        <div className="brand">
-          <span className="brand-mark">EP</span>
-          <span>
-            Elite <b>Pregão Pro</b>
-          </span>
-        </div>
-        <div className="eyebrow">PRIMEIRO ACESSO</div>
-        <h1>Cadastre sua empresa</h1>
-        <p>
-          Seus registros ficarão vinculados a esta empresa. Só membros
-          autorizados poderão consultá-los.
-        </p>
-        <form onSubmit={submit} className="stack-form">
-          <Field label="Nome da empresa">
-            <input
-              required
-              minLength={2}
-              maxLength={180}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Razão social ou nome de uso"
-            />
-          </Field>
-          <Field
-            label="CNPJ (opcional)"
-            hint="O CNPJ é salvo somente no espaço da sua empresa."
-          >
-            <input
-              inputMode="numeric"
-              maxLength={18}
-              value={cnpj}
-              onChange={e => setCnpj(e.target.value.replace(/[^\d./-]/g, ""))}
-              placeholder="00.000.000/0000-00"
-            />
-          </Field>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Salvando…" : "Criar empresa"}
-          </Button>
-        </form>
-        <small className="muted-copy">
-          Conta autenticada{userName ? ` como ${userName}` : ""}.
-        </small>
-      </div>
-    </div>
-  );
+/* Public landing */
+.marketing-page {
+  min-height: 100vh;
+  background: #fbfcfb;
+}
+.marketing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 78px;
+  border-bottom: 1px solid var(--line);
+}
+.marketing-nav nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  color: #54646b;
+  font-size: 13px;
+  font-weight: 600;
+}
+.marketing-nav nav a:not(.btn):hover {
+  color: var(--teal);
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1.03fr 0.97fr;
+  align-items: center;
+  gap: 80px;
+  padding-block: 84px 94px;
+}
+.hero-copy {
+  max-width: 540px;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--teal-dark);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #087e7818;
+}
+.hero h1 {
+  margin: 22px 0 18px;
+  color: var(--navy);
+  font-size: clamp(40px, 4.7vw, 61px);
+  line-height: 1.05;
+  letter-spacing: -3.2px;
+  font-weight: 700;
+}
+.hero h1 em {
+  color: var(--teal);
+  font-style: normal;
+}
+.hero-copy > p {
+  max-width: 480px;
+  color: #627178;
+  font-size: 16px;
+  line-height: 1.75;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 23px;
+  margin-top: 30px;
+}
+.hero-proof {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 430px;
+  margin-top: 30px;
+  color: #718086;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.hero-proof svg {
+  flex: none;
+  color: var(--teal);
+}
+.hero-preview {
+  padding: 24px;
+  border: 1px solid #dfe7e5;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 24px 65px #142c3912;
+  transform: rotate(0.5deg);
+}
+.preview-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid #edf0ef;
+  color: #77858a;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.preview-top .mini-brand {
+  width: 25px;
+  height: 25px;
+  font-size: 8px;
+}
+.preview-date {
+  margin-left: auto;
+  color: #9aa5a9;
+  font-size: 8px;
+}
+.preview-greeting {
+  margin-top: 21px;
+  color: #708087;
+  font-size: 12px;
+}
+.preview-greeting b {
+  display: block;
+  margin-top: 5px;
+  color: var(--navy);
+  font-size: 21px;
+}
+.preview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 22px 0;
+}
+.preview-stats > div {
+  padding: 13px;
+  background: #f6f9f8;
+  border-radius: 8px;
+}
+.preview-stats span,
+.preview-stats small {
+  display: block;
+  color: #7c898e;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+}
+.preview-stats b {
+  display: block;
+  margin: 7px 0 1px;
+  color: var(--navy);
+  font-size: 27px;
+}
+.preview-stats small {
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.gold-text {
+  color: var(--gold) !important;
+}
+.preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 3px;
+  border-bottom: 1px solid #edf0ef;
+}
+.preview-row > div {
+  flex: 1;
+}
+.preview-row b,
+.preview-row small {
+  display: block;
+}
+.preview-row b {
+  color: var(--navy);
+  font-size: 11px;
+}
+.preview-row small {
+  margin-top: 4px;
+  color: #859196;
+  font-size: 9px;
+}
+.status-pip {
+  width: 7px;
+  height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+.status-pip.muted {
+  background: #b4c1c0;
+}
+.preview-arrow {
+  color: var(--teal);
+}
+.preview-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f6f8f7;
+  border-radius: 7px;
+}
+.preview-footer span {
+  color: #899599;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+.preview-footer b {
+  color: var(--navy);
+  font-size: 10px;
+}
+.value-strip {
+  padding: 25px 0;
+  background: #f2f6f5;
+  border-block: 1px solid #e8eeec;
+}
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.value-grid > div {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  column-gap: 12px;
+}
+.value-grid svg {
+  grid-row: span 2;
+  color: var(--teal);
+}
+.value-grid b {
+  color: var(--navy);
+  font-size: 12px;
+}
+.value-grid span {
+  margin-top: 4px;
+  color: #7a878c;
+  font-size: 10px;
+}
+.marketing-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 50px;
+  padding-block: 66px 58px;
+}
+.marketing-foot > div:first-child {
+  max-width: 650px;
+}
+.marketing-foot h2 {
+  color: var(--navy);
+  font-size: 28px;
+  letter-spacing: -0.8px;
+}
+.marketing-foot p {
+  color: #6c797e;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.foot-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 650;
 }
 
-const navItems = [
-  ["/dashboard", "Painel", LayoutDashboard],
-  ["/oportunidades", "Oportunidades", Search],
-  ["/funil", "Funil", BriefcaseBusiness],
-  ["/agenda", "Agenda", CalendarDays],
-  ["/documentos", "Habilitação", FileCheck2],
-  ["/pregao", "Sala de pregão", Gavel],
-  ["/antecipagov", "AntecipaGov", CircleDollarSign],
-  ["/perfis", "Perfis de busca", SlidersHorizontal],
-] as const;
+/* Authenticated workspace */
+.app-shell {
+  min-height: 100vh;
+}
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  padding: 24px 15px 14px;
+  background: #fff;
+  border-right: 1px solid var(--line);
+}
+.sidebar > .brand {
+  padding: 0 8px 26px;
+}
+.side-caption {
+  padding: 0 11px 10px;
+  color: #9aa6a9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+.company-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  margin: 0 2px 20px;
+  padding: 0 10px;
+  color: var(--teal-dark);
+  background: #f5f8f7;
+  border: 1px solid #e8eeec;
+  border-radius: 8px;
+}
+.company-switch select {
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 20px 0 0;
+  overflow: hidden;
+  color: #31464f;
+  background: transparent;
+  border: 0;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 700;
+  appearance: none;
+}
+.company-switch svg:last-child {
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
+}
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 0 11px;
+  color: #67767c;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 580;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.nav-link:hover {
+  color: var(--navy);
+  background: #f7f9f8;
+}
+.nav-link.active {
+  color: var(--teal-dark);
+  background: #eaf4f2;
+  font-weight: 720;
+}
+.nav-link.active svg {
+  color: var(--teal);
+}
+.nav-dot {
+  width: 5px;
+  height: 5px;
+  margin-left: auto;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.sidebar-spacer {
+  flex: 1;
+}
+.sidebar-foot {
+  border-top: 1px solid #edf0ef;
+  padding-top: 9px;
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 3px 3px;
+}
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--teal-dark);
+  background: #eaf4f2;
+  border-radius: 50%;
+  font-weight: 800;
+}
+.user-meta {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+.user-meta b {
+  overflow: hidden;
+  color: var(--navy);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-meta small {
+  overflow: hidden;
+  color: #8d999d;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  flex: none;
+  padding: 0;
+  color: #64747a;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+}
+.icon-button:hover {
+  background: #f0f4f3;
+  color: var(--teal-dark);
+}
+.main-area {
+  min-height: 100vh;
+  margin-left: 250px;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 35px;
+  background: #ffffffed;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #8b989d;
+  font-size: 11px;
+}
+.breadcrumb span:last-child {
+  color: #52636a;
+  font-weight: 650;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.timezone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  color: #78868a;
+  background: #f6f8f7;
+  border-radius: 20px;
+  font-size: 9px;
+}
+.page-content {
+  width: min(1330px, 100%);
+  margin-inline: auto;
+  padding: 29px 35px 50px;
+}
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.page-heading .eyebrow {
+  margin-bottom: 7px;
+  color: #839196;
+  font-size: 9px;
+  letter-spacing: 0.85px;
+}
+.page-heading h1 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 26px;
+  letter-spacing: -0.7px;
+  line-height: 1.25;
+}
+.page-heading p {
+  margin: 8px 0 0;
+  color: #77858a;
+  font-size: 12px;
+}
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.app-footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 35px;
+  color: #98a2a5;
+  border-top: 1px solid var(--line);
+  font-size: 9px;
+}
+.app-footer span:first-child {
+  color: #637379;
+  font-weight: 700;
+}
+.app-footer span:nth-child(2) {
+  flex: 1;
+}
+.app-footer a {
+  color: var(--teal-dark);
+  font-weight: 650;
+}
 
-export function WorkspaceRoute() {
-  const auth = useAuth();
-  const [path, navigate] = useLocation();
-  const companiesQ = trpc.company.mine.useQuery(undefined, {
-    enabled: Boolean(auth.user),
-    retry: false,
-  });
-  const [selectedCompany, setSelectedCompany] = useState<number>(
-    () => Number(localStorage.getItem("elite-pregao-company")) || 0
-  );
-  useEffect(() => {
-    if (
-      companiesQ.data?.length &&
-      !companiesQ.data.some(c => c.id === selectedCompany)
-    )
-      setSelectedCompany(companiesQ.data[0].id);
-  }, [companiesQ.data, selectedCompany]);
-  useEffect(() => {
-    if (selectedCompany)
-      localStorage.setItem("elite-pregao-company", String(selectedCompany));
-  }, [selectedCompany]);
-  if (auth.loading)
-    return (
-      <div className="loading-screen">
-        <div className="loading-mark">EP</div>
-        <span>Validando sessão…</span>
-      </div>
-    );
-  if (!auth.user) {
-    if (path === "/planos")
-      return (
-        <PublicStandalone title="Planos">
-          <PlansPage />
-        </PublicStandalone>
-      );
-    if (path === "/suporte")
-      return (
-        <PublicStandalone title="Suporte">
-          <SupportPage />
-        </PublicStandalone>
-      );
-    if (path === "/termos")
-      return (
-        <PublicStandalone title="Termos de Uso">
-          <LegalPage privacy={false} />
-        </PublicStandalone>
-      );
-    if (path === "/privacidade")
-      return (
-        <PublicStandalone title="Política de Privacidade">
-          <LegalPage privacy />
-        </PublicStandalone>
-      );
-    return <MarketingPage />;
+/* Content */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #deebe8;
+  border-radius: 8px;
+  background: #f0f7f5;
+  color: #4f646a;
+  font-size: 11px;
+  line-height: 1.65;
+}
+.notice b {
+  color: #26444d;
+}
+.notice-info {
+  border-color: #deebe8;
+  background: #f0f7f5;
+}
+.notice-warning {
+  border-color: #f0e5cd;
+  background: #fcf8ef;
+  color: #766344;
+}
+.notice-success {
+  border-color: #dcebe1;
+  background: #f1f8f3;
+}
+.notice-error {
+  border-color: #f0d8d4;
+  background: #fff5f3;
+  color: #89574f;
+}
+.notice-mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 0;
+  color: var(--teal);
+  background: #dfeeea;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+}
+.notice-warning .notice-mark {
+  color: #946a25;
+  background: #f5e8cd;
+}
+.notice-error .notice-mark {
+  color: var(--red);
+  background: #f8e1dd;
+}
+.notice-actions {
+  margin-top: 10px;
+}
+.panel,
+.filter-panel {
+  padding: 19px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 16px;
+}
+.panel-head h2,
+.panel > h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+.panel-head p,
+.panel > p {
+  margin: 5px 0 0;
+  color: #879398;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+}
+.stat-card {
+  min-height: 132px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.stat-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #89969a;
+  font-size: 10px;
+}
+.stat-top span {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  color: var(--teal);
+  background: #e9f4f1;
+  border-radius: 7px;
+}
+.stat-top svg {
+  width: 15px;
+  height: 15px;
+}
+.stat-card > b {
+  display: block;
+  margin: 13px 0 3px;
+  color: var(--navy);
+  font-size: 28px;
+  line-height: 1;
+}
+.stat-card > small {
+  color: #879397;
+  font-size: 9px;
+}
+.stat-warning .stat-top span {
+  color: #a7772e;
+  background: #fbf3e5;
+}
+.stat-warning > b {
+  color: #a7772e;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.dashboard-grid > .panel {
+  min-width: 0;
+}
+.task-list,
+.deal-list {
+  display: flex;
+  flex-direction: column;
+}
+.task-row,
+.deal-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 61px;
+  padding: 9px 0;
+  border-top: 1px solid #eff2f1;
+}
+.task-state,
+.deal-indicator {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  flex: none;
+  color: var(--teal);
+  background: #edf6f3;
+  border-radius: 7px;
+}
+.task-state.late {
+  color: var(--red);
+  background: #fff0ed;
+}
+.task-copy,
+.deal-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.task-copy b,
+.deal-copy b {
+  overflow: hidden;
+  color: #30464f;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.task-copy small,
+.deal-copy small {
+  color: #89969a;
+  font-size: 9px;
+}
+.deal-indicator {
+  width: 4px;
+  height: 35px;
+  border-radius: 3px;
+}
+.value-small {
+  color: #53666d;
+  font-size: 9px;
+  font-weight: 700;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-muted {
+  color: #64747a;
+  background: #f0f3f2;
+}
+.badge-warn {
+  color: #9b6b25;
+  background: #fbf1df;
+}
+.badge-good {
+  color: #247253;
+  background: #e9f5ee;
+}
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.quick-actions button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 72px;
+  padding: 14px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  text-align: left;
+}
+.quick-actions button:hover {
+  border-color: #9ccac5;
+}
+.quick-actions button > svg:first-child {
+  color: var(--teal);
+}
+.quick-actions button > svg:last-child {
+  margin-left: auto;
+  color: #9aa5a9;
+  width: 15px;
+}
+.quick-actions span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.quick-actions b {
+  color: #31464f;
+  font-size: 10px;
+}
+.quick-actions small {
+  color: #8b989c;
+  font-size: 9px;
+}
+.empty-state {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 36px 18px;
+  text-align: center;
+}
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: #86aaa5;
+  background: #f0f6f4;
+  border-radius: 50%;
+}
+.empty-state h3 {
+  margin: 13px 0 5px;
+  color: #344952;
+  font-size: 13px;
+}
+.empty-state p {
+  max-width: 450px;
+  margin: 0 0 14px;
+  color: #829095;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  color: #617177;
+  font-size: 10px;
+  font-weight: 650;
+}
+.field-label {
+  color: #53646a;
+}
+.field-hint {
+  color: #8c999c;
+  font-size: 9px;
+  font-weight: 450;
+  line-height: 1.5;
+}
+.filter-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.filter-title > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--navy);
+  font-size: 12px;
+}
+.filter-title svg {
+  color: var(--teal);
+}
+.filter-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  color: #7c898e;
+  font-size: 10px;
+}
+.filter-toolbar .field {
+  width: 190px;
+}
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.filter-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #eff2f1;
+}
+.filter-footer > span {
+  color: #8b979a;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.results-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 15px;
+}
+.results-head h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+}
+.results-head p,
+.source-time {
+  margin: 5px 0 0;
+  color: #879398;
+  font-size: 10px;
+}
+.fetch-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6e7d82;
+  font-size: 11px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d9e6e3;
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  if (companiesQ.isLoading)
-    return (
-      <div className="loading-screen">
-        <span>Carregando empresas…</span>
-      </div>
-    );
-  if (companiesQ.error)
-    return (
-      <div className="loading-screen">
-        <div className="error-panel">
-          <h2>Não foi possível carregar a empresa</h2>
-          <p>{companiesQ.error.message}</p>
-          <Button variant="secondary" onClick={() => companiesQ.refetch()}>
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    );
-  if (!companiesQ.data?.length)
-    return (
-      <Onboarding
-        userName={auth.user.name}
-        onCreated={id => {
-          setSelectedCompany(id);
-          navigate("/dashboard");
-          companiesQ.refetch();
-        }}
-      />
-    );
-  const activeCompany =
-    companiesQ.data.find(c => c.id === selectedCompany) ?? companiesQ.data[0];
-  const dealRoute = path.match(/^\/oportunidades\/(\d+)$/);
-  const selectedPath =
-    path === "/" ? "/dashboard" : dealRoute ? "/oportunidades/:id" : path;
-  const titles: Record<string, [string, string]> = {
-    "/dashboard": [
-      "Visão geral",
-      "Decida o próximo passo com prazos, oportunidades e pendências da empresa.",
-    ],
-    "/oportunidades": [
-      "Oportunidades",
-      "Consulte registros oficiais e confira a fonte antes de adicionar ao funil.",
-    ],
-    "/oportunidades/:id": [
-      "Espaço de trabalho",
-      "Dados oficiais, tarefas e registros internos vinculados a esta oportunidade.",
-    ],
-    "/funil": [
-      "Funil de oportunidades",
-      "Acompanhe o andamento interno sem perder a referência oficial.",
-    ],
-    "/agenda": [
-      "Agenda e tarefas",
-      "Prazos, sessões registradas pela fonte e tarefas da sua equipe.",
-    ],
-    "/documentos": [
-      "Habilitação e documentos",
-      "Organize validade e responsável. A emissão continua com o órgão competente.",
-    ],
-    "/pregao": [
-      "Sala de pregão",
-      "Acompanhamento manual; não é uma conexão oficial em tempo real.",
-    ],
-    "/antecipagov": [
-      "AntecipaGov",
-      "Orientação e registros internos. Operações acontecem no serviço externo.",
-    ],
-    "/perfis": [
-      "Perfis de busca",
-      "Salve critérios e identifique resultados personalizados somente após ativar um perfil.",
-    ],
-    "/planos": [
-      "Planos",
-      "Informações comerciais configuráveis. Nenhum pagamento está habilitado.",
-    ],
-    "/suporte": [
-      "Suporte",
-      "Envie uma solicitação. O canal de resposta precisa ser configurado pelo administrador.",
-    ],
-    "/termos": ["Termos de Uso", "Condições de uso do Elite Pregão Pro."],
-    "/privacidade": [
-      "Política de Privacidade",
-      "Como os dados são utilizados no ambiente da empresa.",
-    ],
-  };
-  const [pageTitle, detail] = titles[selectedPath] ?? [
-    "Página não encontrada",
-    "Use a navegação para acessar os módulos disponíveis.",
-  ];
-  return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <Link href="/dashboard" className="brand">
-          <span className="brand-mark">EP</span>
-          <span>
-            Elite <b>Pregão Pro</b>
-          </span>
-        </Link>
-        <div className="side-caption">ESPAÇO DE TRABALHO</div>
-        <div className="company-switch">
-          <Building2 size={16} />
-          <select
-            aria-label="Empresa ativa"
-            value={activeCompany.id}
-            onChange={e => setSelectedCompany(Number(e.target.value))}
-          >
-            {companiesQ.data.map(c => (
-              <option value={c.id} key={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} />
-        </div>
-        <nav className="side-nav">
-          {navItems.map(([href, label, Icon]) => (
-            <Link
-              key={href}
-              href={href}
-              className={`nav-link ${selectedPath === href ? "active" : ""}`}
-            >
-              <Icon size={17} />
-              <span>{label}</span>
-              {href === "/agenda" && <span className="nav-dot" />}
-            </Link>
-          ))}
-        </nav>
-        <div className="sidebar-spacer" />
-        <div className="sidebar-foot">
-          <Link
-            href="/suporte"
-            className={`nav-link ${selectedPath === "/suporte" ? "active" : ""}`}
-          >
-            <CircleHelpIcon />
-            <span>Suporte</span>
-          </Link>
-          <div className="user-chip">
-            <span className="user-avatar">
-              {(auth.user.name ?? "U").slice(0, 1).toUpperCase()}
-            </span>
-            <span className="user-meta">
-              <b>{auth.user.name || "Usuário"}</b>
-              <small>{auth.user.email || "Conta autenticada"}</small>
-            </span>
-            <button
-              aria-label="Sair"
-              title="Sair"
-              className="icon-button"
-              onClick={async () => {
-                await auth.logout();
-                navigate("/");
-              }}
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
-      </aside>
-      <main className="main-area">
-        <header className="topbar">
-          <div className="mobile-brand">
-            <span className="brand-mark">EP</span>
-            <b>Elite Pregão Pro</b>
-          </div>
-          <div className="breadcrumb">
-            <Home size={14} />
-            <span>/</span>
-            <span>{activeCompany.name}</span>
-          </div>
-          <div className="top-actions">
-            <span className="timezone-pill">
-              <Clock3 size={14} /> America/São_Paulo
-            </span>
-            <span
-              className="icon-button disabled-notifications"
-              aria-label="Notificações ainda não ativadas"
-              title="Notificações ainda não ativadas"
-            >
-              <Bell size={17} />
-            </span>
-          </div>
-        </header>
-        <section className="page-content">
-          <PageHeading
-            eyebrow={activeCompany.name}
-            title={pageTitle}
-            detail={detail}
-          />
-          {selectedPath === "/dashboard" && (
-            <DashboardPage companyId={activeCompany.id} navigate={navigate} />
-          )}
-          {selectedPath === "/oportunidades" && (
-            <OpportunitiesPage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/oportunidades/:id" && dealRoute && (
-            <DealWorkspace
-              companyId={activeCompany.id}
-              dealId={Number(dealRoute[1])}
-            />
-          )}
-          {selectedPath === "/funil" && (
-            <PipelinePage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/agenda" && (
-            <AgendaPage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/documentos" && (
-            <DocumentsPage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/pregao" && (
-            <ManualPage companyId={activeCompany.id} module="pregao" />
-          )}
-          {selectedPath === "/antecipagov" && (
-            <AntecipagovPage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/perfis" && (
-            <ProfilesPage companyId={activeCompany.id} />
-          )}
-          {selectedPath === "/planos" && <PlansPage />}
-          {selectedPath === "/suporte" && <SupportPage />}
-          {selectedPath === "/termos" && <LegalPage privacy={false} />}
-          {selectedPath === "/privacidade" && <LegalPage privacy />}
-          {!titles[selectedPath] && (
-            <Empty
-              title="Rota não encontrada"
-              text="Escolha uma página pelo menu lateral."
-              action={
-                <Button onClick={() => navigate("/dashboard")}>
-                  Voltar ao painel
-                </Button>
-              }
-            />
-          )}
-        </section>
-        <footer className="app-footer">
-          <span>Elite Pregão Pro</span>
-          <span>
-            Dados oficiais e registros internos identificados separadamente.
-          </span>
-          <Link href="/privacidade">Privacidade</Link>
-        </footer>
-      </main>
-    </div>
-  );
 }
-function CircleHelpIcon() {
-  return <Activity size={17} />;
+.opportunity-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 18px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
-
-function DashboardPage({
-  companyId,
-  navigate,
-}: {
-  companyId: number;
-  navigate: (path: string) => void;
-}) {
-  const summary = trpc.summary.get.useQuery({ companyId });
-  const dealsQ = trpc.deals.list.useQuery({ companyId });
-  const tasksQ = trpc.tasks.list.useQuery({ companyId });
-  const companyQ = trpc.company.mine.useQuery();
-  const company = companyQ.data?.find(c => c.id === companyId);
-  const [companyName, setCompanyName] = useState("");
-  const [companyCnpj, setCompanyCnpj] = useState("");
-  const utils = trpc.useUtils();
-  const saveCompany = trpc.company.update.useMutation({
-    onSuccess: () => {
-      toast.success("Dados da empresa atualizados.");
-      utils.company.mine.invalidate();
-      utils.company.audit.invalidate({ companyId });
-    },
-    onError: error => toast.error(error.message),
-  });
-  useEffect(() => {
-    if (company) {
-      setCompanyName(company.name);
-      setCompanyCnpj(company.cnpj ?? "");
-    }
-  }, [company?.id, company?.name, company?.cnpj]);
-  const today = Date.now();
-  const nextTasks = (tasksQ.data ?? [])
-    .filter(t => t.status === "aberta" || t.status === "remarcada")
-    .sort((a, b) => (a.dueAt?.getTime() ?? 9e15) - (b.dueAt?.getTime() ?? 9e15))
-    .slice(0, 4);
-  const recent = (dealsQ.data ?? []).slice(0, 4);
-  if (summary.error || dealsQ.error)
-    return (
-      <Notice kind="error">
-        Os dados do painel não puderam ser carregados.{" "}
-        <button
-          className="inline-link"
-          onClick={() => {
-            summary.refetch();
-            dealsQ.refetch();
-          }}
-        >
-          Tentar novamente
-        </button>
-      </Notice>
-    );
-  return (
-    <div className="page-stack">
-      <div className="stat-grid">
-        <Stat
-          icon={<BriefcaseBusiness />}
-          label="No funil"
-          value={summary.data?.deals ?? "—"}
-          note="oportunidades salvas"
-        />
-        <Stat
-          icon={<Activity />}
-          label="Em andamento"
-          value={summary.data?.activeDeals ?? "—"}
-          note="sem considerar ganhos ou perdas"
-        />
-        <Stat
-          icon={<CalendarClock />}
-          label="Tarefas abertas"
-          value={summary.data?.tasksOpen ?? "—"}
-          note={`${summary.data?.overdueTasks ?? 0} em atraso`}
-          tone={(summary.data?.overdueTasks ?? 0) ? "warning" : "normal"}
-        />
-        <Stat
-          icon={<FileCheck2 />}
-          label="Documentos a vencer"
-          value={summary.data?.expiringDocuments ?? "—"}
-          note="nos próximos 30 dias"
-        />
-      </div>
-      <Notice>
-        O painel reúne somente registros desta empresa. A busca oficial é
-        atualizada sob demanda; nenhum dado é sincronizado em segundo plano.
-      </Notice>
-      {company?.role === "owner" && (
-        <section className="panel company-settings-panel">
-          <div className="panel-head">
-            <div>
-              <h2>Dados da empresa</h2>
-              <p>Configuração administrativa disponível ao proprietário.</p>
-            </div>
-          </div>
-          <form
-            className="inline-form"
-            onSubmit={event => {
-              event.preventDefault();
-              saveCompany.mutate({
-                companyId,
-                name: companyName,
-                cnpj: companyCnpj,
-              });
-            }}
-          >
-            <Field label="Nome da empresa">
-              <input
-                required
-                minLength={2}
-                maxLength={180}
-                value={companyName}
-                onChange={event => setCompanyName(event.target.value)}
-              />
-            </Field>
-            <Field label="CNPJ (opcional)">
-              <input
-                inputMode="numeric"
-                maxLength={18}
-                value={companyCnpj}
-                onChange={event => setCompanyCnpj(event.target.value)}
-                placeholder="00.000.000/0000-00"
-              />
-            </Field>
-            <Button disabled={saveCompany.isPending}>
-              {saveCompany.isPending ? "Salvando…" : "Salvar empresa"}
-            </Button>
-          </form>
-        </section>
-      )}
-      <div className="dashboard-grid">
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Próximas tarefas</h2>
-              <p>Agenda interna · fuso America/São_Paulo</p>
-            </div>
-            <Link href="/agenda" className="text-link">
-              Ver agenda <ArrowRight size={14} />
-            </Link>
-          </div>
-          {tasksQ.isLoading ? (
-            <LoadingRows />
-          ) : nextTasks.length ? (
-            <div className="task-list">
-              {nextTasks.map(t => (
-                <div className="task-row" key={t.id}>
-                  <span
-                    className={`task-state ${t.dueAt && t.dueAt.getTime() < today ? "late" : ""}`}
-                  >
-                    <CalendarDays size={16} />
-                  </span>
-                  <div className="task-copy">
-                    <b>{t.title}</b>
-                    <small>
-                      {t.dueAt ? fmtDate(t.dueAt, true) : "Sem prazo definido"}
-                    </small>
-                  </div>
-                  <span
-                    className={`badge ${t.dueAt && t.dueAt.getTime() < today ? "badge-warn" : "badge-muted"}`}
-                  >
-                    {t.dueAt && t.dueAt.getTime() < today
-                      ? "Atrasada"
-                      : t.status === "remarcada"
-                        ? "Remarcada"
-                        : "Futura"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Empty
-              title="Sem tarefas em aberto"
-              text="Crie uma tarefa vinculada a uma oportunidade ou à empresa."
-              action={
-                <Button variant="secondary" onClick={() => navigate("/agenda")}>
-                  Abrir agenda
-                </Button>
-              }
-            />
-          )}
-        </section>
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Atividade no funil</h2>
-              <p>Oportunidades adicionadas explicitamente</p>
-            </div>
-            <Link href="/funil" className="text-link">
-              Abrir funil <ArrowRight size={14} />
-            </Link>
-          </div>
-          {dealsQ.isLoading ? (
-            <LoadingRows />
-          ) : recent.length ? (
-            <div className="deal-list">
-              {recent.map(d => (
-                <div className="deal-row" key={d.id}>
-                  <span className="deal-indicator" />
-                  <div className="deal-copy">
-                    <b>{d.title}</b>
-                    <small>
-                      {d.organization} · {stageName(d.stage)}
-                    </small>
-                  </div>
-                  <span className="value-small">
-                    {money(d.estimatedValue, true)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Empty
-              title="Seu funil começa com uma oportunidade"
-              text="Consulte o PNCP e escolha o que deseja acompanhar."
-              action={
-                <Button onClick={() => navigate("/oportunidades")}>
-                  Buscar oportunidades
-                </Button>
-              }
-            />
-          )}
-        </section>
-      </div>
-      <div className="quick-actions">
-        <button onClick={() => navigate("/oportunidades")}>
-          <Search />
-          <span>
-            <b>Buscar oportunidades</b>
-            <small>Consultar PNCP agora</small>
-          </span>
-          <ArrowRight />
-        </button>
-        <button onClick={() => navigate("/documentos")}>
-          <FileCheck2 />
-          <span>
-            <b>Organizar habilitação</b>
-            <small>Ver prazos de documentos</small>
-          </span>
-          <ArrowRight />
-        </button>
-        <button onClick={() => navigate("/pregao")}>
-          <Gavel />
-          <span>
-            <b>Acompanhar pregão</b>
-            <small>Registrar anotação interna</small>
-          </span>
-          <ArrowRight />
-        </button>
-      </div>
-    </div>
-  );
+.opp-main {
+  min-width: 0;
 }
-function Stat({
-  icon,
-  label,
-  value,
-  note,
-  tone = "normal",
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  note: string;
-  tone?: string;
-}) {
-  return (
-    <div className={`stat-card stat-${tone}`}>
-      <div className="stat-top">
-        <span>{icon}</span>
-        <small>{label}</small>
-      </div>
-      <b>{value}</b>
-      <small>{note}</small>
-    </div>
-  );
+.opp-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-function LoadingRows() {
-  return (
-    <div className="loading-rows">
-      <i />
-      <i />
-      <i />
-    </div>
-  );
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #43736d;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
 }
-
-type SearchRecord = {
-  externalId: string;
-  title: string;
-  organization: string;
-  buyerUnit: string | null;
-  modality: string | null;
-  modalityId: number | null;
-  object: string | null;
-  state: string | null;
-  city: string | null;
-  sphere: string | null;
-  estimatedValue: number | null;
-  publicationAt: string | null;
-  sessionAt: string | null;
-  proposalDeadline: string | null;
-  officialStatus: string;
-  sourceUrl: string | null;
-  sourceUpdatedAt: string | null;
-};
-type SearchVars = {
-  companyId: number;
-  page: number;
-  deadlineThrough: string;
-  publicationFrom?: string;
-  publicationTo?: string;
-  state?: string | null;
-  modalityId?: number | null;
-  keyword?: string;
-  minValue?: number | null;
-  maxValue?: number | null;
-};
-function OpportunitiesPage({ companyId }: { companyId: number }) {
-  const [from, setFrom] = useState(todaySP());
-  const [to, setTo] = useState(todaySP());
-  const [deadlineThrough, setDeadlineThrough] = useState(todaySP());
-  const [keyword, setKeyword] = useState("");
-  const [state, setState] = useState("");
-  const [modalityId, setModalityId] = useState("");
-  const [sphere, setSphere] = useState("");
-  const [minValue, setMinValue] = useState("");
-  const [maxValue, setMaxValue] = useState("");
-  const [, navigate] = useLocation();
-  const [vars, setVars] = useState<SearchVars | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState("");
-  const profilesQ = trpc.profiles.list.useQuery({ companyId });
-  const fallback: SearchVars = {
-    companyId,
-    page: 1,
-    deadlineThrough: todaySP(),
-  };
-  const query = trpc.official.search.useQuery(vars ?? fallback, {
-    enabled: Boolean(vars),
-    retry: false,
-    staleTime: 0,
-  });
-  const util = trpc.useUtils();
-  const add = trpc.deals.addOfficial.useMutation({
-    onSuccess: result => {
-      if (result.duplicate) toast.info("Esta oportunidade já está no funil.");
-      else toast.success("Oportunidade adicionada ao funil.");
-      util.deals.list.invalidate({ companyId });
-      if (result.id) navigate(`/oportunidades/${result.id}`);
-    },
-    onError: e => toast.error(e.message),
-  });
-  const visible = useMemo(
-    () =>
-      ((query.data?.records ?? []) as SearchRecord[]).filter(
-        (r: SearchRecord) => !sphere || r.sphere === sphere
-      ),
-    [query.data, sphere]
-  );
-  const modalities = useMemo(() => {
-    const m = new Map<number, string>();
-    ((query.data?.records ?? []) as SearchRecord[]).forEach(
-      (r: SearchRecord) => {
-        if (r.modalityId && r.modality) m.set(r.modalityId, r.modality);
-      }
-    );
-    return [...m.entries()];
-  }, [query.data]);
-  const search = (e: FormEvent) => {
-    e.preventDefault();
-    if (from && to && from > to) {
-      toast.error("A data inicial da publicação deve ser anterior à final.");
-      return;
-    }
-    setVars({
-      companyId,
-      page: 1,
-      deadlineThrough,
-      publicationFrom: from || undefined,
-      publicationTo: to || undefined,
-      state: state || null,
-      modalityId: modalityId ? Number(modalityId) : null,
-      keyword: keyword.trim() || undefined,
-      minValue: minValue ? Number(minValue) : null,
-      maxValue: maxValue ? Number(maxValue) : null,
-    });
-  };
-  const clear = () => {
-    setFrom(todaySP());
-    setTo(todaySP());
-    setDeadlineThrough(todaySP());
-    setKeyword("");
-    setState("");
-    setModalityId("");
-    setSphere("");
-    setMinValue("");
-    setMaxValue("");
-    setVars(null);
-  };
-  const addRecord = (r: SearchRecord) => {
-    const copied = `Certame: ${r.title}\nÓrgão: ${r.organization}\nModalidade: ${r.modality ?? "não informada"}\nObjeto: ${r.object ?? "não informado"}\nValor: ${money(r.estimatedValue)}\nPublicação: ${fmtDate(r.publicationAt, true)}\nSessão: ${fmtDate(r.sessionAt, true)}\nPrazo de proposta: ${fmtDate(r.proposalDeadline, true)}\nFonte: PNCP\nLink oficial: ${r.sourceUrl ?? "indisponível"}`;
-    if (
-      !window.confirm(
-        `Adicionar ao funil?\n\nSerão copiados os dados oficiais abaixo e a oportunidade começará na etapa “Oportunidade”.\n\n${copied}`
-      )
-    )
-      return;
-    add.mutate({
-      companyId,
-      externalId: r.externalId,
-      title: r.title,
-      organization: r.organization,
-      buyerUnit: r.buyerUnit,
-      modality: r.modality,
-      object: r.object,
-      state: r.state,
-      city: r.city,
-      estimatedValue: r.estimatedValue,
-      publicationAt: r.publicationAt,
-      sessionAt: r.sessionAt,
-      proposalDeadline: r.proposalDeadline,
-      officialStatus: r.officialStatus,
-      sourceUrl: r.sourceUrl,
-      sourceUpdatedAt: r.sourceUpdatedAt,
-    });
-  };
-  return (
-    <div className="page-stack">
-      <Notice kind="info">
-        <b>Fonte oficial: PNCP.</b> A consulta é acionada por você e retorna
-        contratações com recebimento de propostas aberto. O PNCP permite até 50
-        itens por página. Palavra-chave, datas de publicação, faixa de valor e
-        esfera são aplicadas aos itens dessa página; a API recebe UF e
-        modalidade. O campo “até quando aceitar propostas” é diferente da data
-        de sessão e da publicação.
-      </Notice>
-      <form className="filter-panel" onSubmit={search}>
-        <div className="filter-title">
-          <div>
-            <SlidersHorizontal size={17} />
-            <b>Filtros da busca</b>
-          </div>
-          <button type="button" className="inline-link" onClick={clear}>
-            Limpar filtros
-          </button>
-        </div>
-        <div className="filters-grid">
-          <Field label="Aplicar perfil salvo">
-            <select
-              value={selectedProfile}
-              onChange={e => {
-                const id = e.target.value;
-                setSelectedProfile(id);
-                const p = profilesQ.data?.find(x => x.id === Number(id));
-                if (!p) return;
-                if (!p.active) {
-                  toast.info(
-                    "Este perfil está inativo; os critérios não foram aplicados."
-                  );
-                  return;
-                }
-                setKeyword(p.keywords ?? "");
-                const uf = p.states
-                  ?.split(/[,;\s]+/)
-                  .map(x => x.trim().toUpperCase())
-                  .find(x => UF.includes(x));
-                setState(uf ?? "");
-                const code =
-                  p.modalities
-                    ?.split(/[,;\s]+/)
-                    .map(x => x.trim())
-                    .find(Boolean) ?? "";
-                setModalityId(code);
-                setMinValue(p.minValue == null ? "" : String(p.minValue));
-                setMaxValue(p.maxValue == null ? "" : String(p.maxValue));
-                if (
-                  (p.states ?? "").split(/[,;\s]+/).filter(Boolean).length > 1
-                )
-                  toast.info(
-                    "Este perfil contém vários estados. Selecione um estado por consulta ao PNCP."
-                  );
-              }}
-            >
-              <option value="">Busca geral (sem perfil personalizado)</option>
-              {(profilesQ.data ?? [])
-                .filter(p => p.active === 1)
-                .map(p => (
-                  <option value={p.id} key={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-            </select>
-          </Field>
-          <Field label="Palavras-chave">
-            <input
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
-              placeholder="Objeto, órgão ou certame"
-            />
-          </Field>
-          <Field label="Publicação — de">
-            <input
-              type="date"
-              value={from}
-              onChange={e => setFrom(e.target.value)}
-            />
-          </Field>
-          <Field label="Publicação — até">
-            <input
-              type="date"
-              value={to}
-              onChange={e => setTo(e.target.value)}
-            />
-          </Field>
-          <Field label="Propostas abertas até">
-            <input
-              type="date"
-              value={deadlineThrough}
-              onChange={e => setDeadlineThrough(e.target.value)}
-            />
-          </Field>
-          <Field label="Estado">
-            <select value={state} onChange={e => setState(e.target.value)}>
-              <option value="">Todos os estados</option>
-              {UF.map(uf => (
-                <option key={uf}>{uf}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Modalidade PNCP">
-            <select
-              value={modalityId}
-              onChange={e => setModalityId(e.target.value)}
-            >
-              <option value="">Todas as modalidades</option>
-              {modalities.map(([id, name]) => (
-                <option value={id} key={id}>
-                  {name} · código {id}
-                </option>
-              ))}
-              {modalityId &&
-                !modalities.some(([id]) => String(id) === modalityId) && (
-                  <option value={modalityId}>
-                    Código {modalityId} · aplicado pelo perfil
-                  </option>
-                )}
-            </select>
-          </Field>
-          <Field label="Esfera (código oficial)">
-            <select value={sphere} onChange={e => setSphere(e.target.value)}>
-              <option value="">Todas</option>
-              <option value="F">Federal (F)</option>
-              <option value="E">Estadual (E)</option>
-              <option value="M">Municipal (M)</option>
-            </select>
-          </Field>
-          <Field label="Valor mínimo (R$)">
-            <input
-              inputMode="decimal"
-              placeholder="0,00"
-              value={minValue}
-              onChange={e => setMinValue(e.target.value.replace(",", "."))}
-            />
-          </Field>
-          <Field label="Valor máximo (R$)">
-            <input
-              inputMode="decimal"
-              placeholder="Sem limite"
-              value={maxValue}
-              onChange={e => setMaxValue(e.target.value.replace(",", "."))}
-            />
-          </Field>
-        </div>
-        <div className="filter-footer">
-          <span>
-            Horário apresentado em America/São_Paulo. A data inicial considera o
-            dia local, sem avanço de fuso.
-          </span>
-          <Button type="submit" disabled={query.isFetching}>
-            <Search size={16} />
-            {query.isFetching ? "Consultando PNCP…" : "Consultar fonte oficial"}
-          </Button>
-        </div>
-      </form>
-      {vars && (
-        <div className="results-head">
-          <div>
-            <h2>Resultados</h2>
-            <p>
-              {query.data
-                ? `${visible.length} exibidos nesta página · ${query.data.totalRecords} total na consulta oficial`
-                : "Aguardando resposta do PNCP…"}
-            </p>
-          </div>
-          {query.data && (
-            <span className="source-time">
-              Atualizado nesta consulta · {fmtDate(query.data.fetchedAt, true)}
-            </span>
-          )}
-        </div>
-      )}
-      {query.error && (
-        <Notice kind="error">
-          <b>Falha na consulta.</b> Nenhum resultado foi presumido.{" "}
-          {query.error.message}
-          <div className="notice-actions">
-            <Button variant="secondary" onClick={() => query.refetch()}>
-              <RefreshCcw size={15} /> Tentar novamente
-            </Button>
-          </div>
-        </Notice>
-      )}
-      {query.isFetching && (
-        <div className="fetch-line">
-          <span className="spinner" /> Consulta oficial em andamento…
-        </div>
-      )}
-      {query.data && !query.isFetching && visible.length === 0 && (
-        <Empty
-          title={
-            query.data.totalRecords === 0
-              ? "Nenhuma oportunidade encontrada pela fonte"
-              : "Nenhum resultado nesta página com os filtros ativos"
-          }
-          text={
-            query.data.totalRecords === 0
-              ? "A fonte oficial não retornou contratações para os parâmetros informados. Ajuste o período de propostas ou os filtros."
-              : "Os filtros locais se aplicam à página consultada. Tente remover filtros ou avançar para outra página."
-          }
-        />
-      )}
-      {visible.map((r: SearchRecord) => (
-        <article className="opportunity-card" key={r.externalId}>
-          <div className="opp-main">
-            <div className="opp-top">
-              <span className="source-badge">
-                <span /> PNCP · FONTE OFICIAL
-              </span>
-              <span className="badge badge-muted">{r.officialStatus}</span>
-            </div>
-            <h3>{r.title}</h3>
-            <p className="opp-object">
-              {r.object || "Objeto não informado pela fonte oficial."}
-            </p>
-            <div className="opp-org">
-              <Landmark size={15} />
-              <b>{r.organization}</b>
-              <span>
-                {r.buyerUnit ? `Unidade: ${r.buyerUnit} · ` : ""}
-                {[r.city, r.state].filter(Boolean).join(" · ") ||
-                  "Localidade não informada"}
-              </span>
-            </div>
-            <div className="opp-facts">
-              <div>
-                <small>VALOR ESTIMADO</small>
-                <b>{money(r.estimatedValue, true)}</b>
-              </div>
-              <div>
-                <small>PUBLICAÇÃO</small>
-                <b>{fmtDate(r.publicationAt, true)}</b>
-              </div>
-              <div>
-                <small>SESSÃO DE ABERTURA</small>
-                <b>{fmtDate(r.sessionAt, true)}</b>
-              </div>
-              <div>
-                <small>FIM DO RECEBIMENTO</small>
-                <b>{fmtDate(r.proposalDeadline, true)}</b>
-              </div>
-            </div>
-            <div className="opp-meta">
-              <span>
-                Atualizado pela fonte: {fmtDate(r.sourceUpdatedAt, true)}
-              </span>
-              <span>Esfera: {r.sphere || "não informada"}</span>
-            </div>
-          </div>
-          <div className="opp-actions">
-            {r.sourceUrl ? (
-              <a
-                className="btn btn-secondary"
-                href={r.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Registro oficial <ExternalLink size={14} />
-              </a>
-            ) : (
-              <span className="disabled-link">Link não fornecido</span>
-            )}
-            <Button onClick={() => addRecord(r)} disabled={add.isPending}>
-              <Plus size={15} /> Adicionar ao funil
-            </Button>
-          </div>
-        </article>
-      ))}
-      {query.data && query.data.totalPages > query.data.page && (
-        <div className="center-row">
-          <Button
-            variant="secondary"
-            disabled={query.isFetching}
-            onClick={() => vars && setVars({ ...vars, page: vars.page + 1 })}
-          >
-            Carregar próxima página · {query.data.page} de{" "}
-            {query.data.totalPages}
-          </Button>
-        </div>
-      )}
-      {query.data && (
-        <p className="source-disclaimer">
-          {query.data.source}. Última consulta{" "}
-          {fmtDate(query.data.fetchedAt, true)}. {query.data.note}
-        </p>
-      )}
-    </div>
-  );
+.source-badge span {
+  width: 6px;
+  height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+.opportunity-card h3 {
+  margin: 12px 0 6px;
+  color: var(--navy);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.opp-object {
+  max-width: 850px;
+  margin: 0;
+  color: #77858a;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.opp-org {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  color: #708087;
+  font-size: 10px;
+}
+.opp-org svg {
+  color: var(--teal);
+}
+.opp-org b {
+  color: #465c64;
+}
+.opp-org span {
+  color: #909b9f;
+}
+.opp-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 17px;
+  padding: 12px 0;
+  border-block: 1px solid #eff2f1;
+}
+.opp-facts div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.opp-facts small {
+  color: #8b979a;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.4px;
+}
+.opp-facts b {
+  color: #43565d;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.opp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 7px;
+  margin-top: 8px;
+  color: #929da0;
+  font-size: 9px;
+}
+.opp-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+}
+.opp-actions .btn {
+  font-size: 10px;
+}
+.disabled-link {
+  padding: 10px;
+  color: #919b9f;
+  font-size: 9px;
+  text-align: center;
+}
+.source-disclaimer {
+  color: #909b9e;
+  font-size: 9px;
+  line-height: 1.6;
+}
+.center-row {
+  display: flex;
+  justify-content: center;
+}
+.pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+  align-items: start;
+}
+.pipeline-column {
+  min-width: 0;
+  padding: 10px;
+  background: #f0f4f3;
+  border: 1px solid #e6ecea;
+  border-radius: 9px;
+}
+.pipeline-col-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 2px 10px;
+  color: #50636a;
+  font-size: 10px;
+}
+.count-pill {
+  display: grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  margin-left: auto;
+  color: #78878b;
+  background: white;
+  border-radius: 20px;
+  font-size: 9px;
+}
+.stage-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+.stage-analise,
+.stage-documentacao,
+.stage-proposta {
+  background: #5d9e91;
+}
+.stage-disputa,
+.stage-habilitacao {
+  background: var(--gold);
+}
+.stage-ganho {
+  background: var(--green);
+}
+.stage-perdido {
+  background: var(--red);
+}
+.pipeline-card {
+  margin-bottom: 8px;
+  padding: 11px;
+  background: #fff;
+  border: 1px solid #e8edeb;
+  border-radius: 7px;
+  box-shadow: 0 2px 5px #1c3d4a06;
+}
+.card-source {
+  overflow: hidden;
+  color: #93a0a2;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pipeline-card h3 {
+  margin: 8px 0 5px;
+  color: #30474f;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.pipeline-card p {
+  margin: 0;
+  color: #819094;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.pipeline-value {
+  margin-top: 10px;
+  color: var(--teal-dark);
+  font-size: 10px;
+  font-weight: 750;
+}
+.mini-date {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 9px;
+  color: #8a969a;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.mini-date svg {
+  flex: none;
+}
+.pipeline-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid #eff2f1;
+}
+.pipeline-card-actions select {
+  min-height: 29px;
+  height: 29px;
+  padding: 0 7px;
+  font-size: 8px;
+}
+.pipeline-card-actions a {
+  display: grid;
+  place-items: center;
+  color: var(--teal);
+}
+.column-empty {
+  padding: 18px 5px;
+  color: #9aa5a7;
+  font-size: 9px;
+  line-height: 1.5;
+  text-align: center;
+}
+.inline-form {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 1.1fr auto;
+  gap: 10px;
+  align-items: end;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #f8faf9;
+  border: 1px solid #edf1ef;
+  border-radius: 8px;
+}
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+}
+.agenda-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 65px;
+  border-top: 1px solid #eff2f1;
+}
+.agenda-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  color: var(--teal);
+  background: #eef6f3;
+  border-radius: 8px;
+}
+.agenda-icon.is-late {
+  color: var(--red);
+  background: #fff0ed;
+}
+.agenda-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+.agenda-copy b {
+  overflow: hidden;
+  color: #30454d;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agenda-copy small {
+  color: #89969a;
+  font-size: 9px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  padding: 15px;
+  margin: 0 0 15px;
+  background: #f8faf9;
+  border: 1px solid #edf1ef;
+  border-radius: 8px;
+}
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  grid-column: 1 / -1;
+}
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #64757a;
+  font-size: 10px;
+}
+.check-label input {
+  width: 15px;
+  min-height: 15px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+th {
+  padding: 9px 10px;
+  color: #8a969a;
+  border-bottom: 1px solid #e9eeec;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+td {
+  padding: 12px 10px;
+  color: #66777c;
+  border-bottom: 1px solid #eff2f1;
+  font-size: 10px;
+  vertical-align: middle;
+}
+td b,
+td small {
+  display: block;
+}
+td b {
+  color: #344a52;
+  font-size: 10px;
+}
+td small {
+  margin-top: 4px;
+  color: #909b9f;
+  font-size: 9px;
+}
+.small-action {
+  padding: 6px 8px;
+  color: var(--teal-dark);
+  background: white;
+  border: 1px solid #dce7e4;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 650;
+}
+.small-action:hover {
+  background: #eff7f4;
+}
+.external-flow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 17px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.external-step {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 9px;
+}
+.external-step > span {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex: none;
+  color: var(--teal-dark);
+  background: #e9f4f1;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 800;
+}
+.external-step b,
+.external-step small {
+  display: block;
+}
+.external-step b {
+  color: #40565e;
+  font-size: 10px;
+}
+.external-step small {
+  margin-top: 4px;
+  color: #88959a;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.manual-list {
+  margin-top: 15px;
+}
+.manual-item {
+  display: flex;
+  gap: 11px;
+  padding: 14px 0;
+  border-top: 1px solid #eff2f1;
+}
+.manual-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  color: var(--teal);
+  background: #edf6f3;
+  border-radius: 50%;
+}
+.manual-text {
+  flex: 1;
+  min-width: 0;
+}
+.manual-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.manual-item-head b {
+  color: #354b53;
+  font-size: 10px;
+}
+.manual-text p {
+  margin: 7px 0;
+  color: #687a80;
+  font-size: 10px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.manual-text small {
+  color: #929da0;
+  font-size: 8px;
+}
+.info-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+}
+.info-columns > div {
+  padding: 14px;
+  background: #f8faf9;
+  border: 1px solid #edf1ef;
+  border-radius: 8px;
+}
+.info-columns b {
+  color: #40565e;
+  font-size: 10px;
+}
+.info-columns p {
+  margin: 7px 0 0;
+  color: #76858a;
+  font-size: 9px;
+  line-height: 1.7;
+}
+.profile-list {
+  display: flex;
+  flex-direction: column;
+}
+.profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid #eff2f1;
+}
+.profile-item b,
+.profile-item small {
+  display: block;
+}
+.profile-item b {
+  color: #344a52;
+  font-size: 10px;
+}
+.profile-item small {
+  margin-top: 4px;
+  color: #879398;
+  font-size: 9px;
+}
+.plans-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) 1.1fr;
+  gap: 16px;
+  align-items: start;
+}
+.plan-card {
+  padding: 23px;
+  background: white;
+  border: 1px solid #e2e9e7;
+  border-radius: 11px;
+}
+.plan-mark {
+  color: var(--teal);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+.plan-card h2 {
+  color: var(--navy);
+  font-size: 19px;
+}
+.plan-card p,
+.plan-note p {
+  color: #79878b;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.plan-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+  color: #586c72;
+  font-size: 10px;
+}
+.plan-card li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plan-card li svg {
+  width: 15px;
+  color: var(--teal);
+}
+.plan-note {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f1f7f5;
+  border: 1px solid #deebe7;
+  border-radius: 9px;
+  color: var(--teal);
+}
+.plan-note b {
+  color: #40585f;
+  font-size: 11px;
+}
+.plan-note p {
+  margin-bottom: 0;
+}
+.narrow-panel {
+  max-width: 640px;
+}
+.stack-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 17px;
+}
+.legal-copy {
+  max-width: 900px;
+  padding: 28px;
+}
+.legal-copy h2 {
+  margin-top: 0;
+  color: var(--navy);
+  font-size: 19px;
+}
+.legal-copy h3 {
+  margin: 24px 0 7px;
+  color: #3e555e;
+  font-size: 12px;
+}
+.legal-copy p {
+  color: #687a80;
+  font-size: 11px;
+  line-height: 1.8;
 }
 
-function PipelinePage({ companyId }: { companyId: number }) {
-  const q = trpc.deals.list.useQuery({ companyId });
-  const membersQ = trpc.company.members.useQuery({ companyId });
-  const auditQ = trpc.company.audit.useQuery({ companyId });
-  const memberName = (id: number | null) =>
-    membersQ.data?.find(m => m.userId === id)?.name || "Responsável da empresa";
-  const util = trpc.useUtils();
-  const update = trpc.deals.update.useMutation({
-    onSuccess: () => {
-      util.deals.list.invalidate({ companyId });
-      toast.success("Funil atualizado.");
-    },
-    onError: e => toast.error(e.message),
-  });
-  const [stageFilter, setStageFilter] = useState("todos");
-  const records = q.data ?? [];
-  const visible =
-    stageFilter === "todos"
-      ? records
-      : records.filter(x => x.stage === stageFilter);
-  if (q.isLoading) return <LoadingRows />;
-  if (q.error)
-    return (
-      <Notice kind="error">
-        Não foi possível carregar o funil.{" "}
-        <button className="inline-link" onClick={() => q.refetch()}>
-          Tentar novamente
-        </button>
-      </Notice>
-    );
-  if (!records.length)
-    return (
-      <Empty
-        title="O funil ainda está vazio"
-        text="Inclua uma oportunidade depois de revisar a fonte oficial. O registro será salvo somente após sua confirmação."
-        action={
-          <Link className="btn btn-primary" href="/oportunidades">
-            Consultar PNCP <ArrowRight size={15} />
-          </Link>
-        }
-      />
-    );
-  return (
-    <div className="page-stack">
-      <div className="filter-toolbar">
-        <span>{records.length} registros no funil</span>
-        <Field label="Filtrar etapa">
-          <select
-            value={stageFilter}
-            onChange={e => setStageFilter(e.target.value)}
-          >
-            <option value="todos">Todas as etapas</option>
-            {STAGES.map(s => (
-              <option value={s.id} key={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-      <div className="pipeline-grid">
-        {(stageFilter === "todos"
-          ? STAGES
-          : STAGES.filter(s => s.id === stageFilter)
-        ).map(stage => {
-          const group = visible.filter(x => x.stage === stage.id);
-          return (
-            <section className="pipeline-column" key={stage.id}>
-              <div className="pipeline-col-head">
-                <span className={`stage-dot stage-${stage.id}`} />
-                <b>{stage.label}</b>
-                <span className="count-pill">{group.length}</span>
-              </div>
-              {group.length ? (
-                group.map(d => (
-                  <article className="pipeline-card" key={d.id}>
-                    <div className="card-source">
-                      {d.source} · {d.externalId}
-                    </div>
-                    <Link
-                      className="pipeline-title-link"
-                      href={`/oportunidades/${d.id}`}
-                    >
-                      {d.title}
-                    </Link>
-                    <p>
-                      {d.organization}
-                      {d.buyerUnit ? ` · Unidade: ${d.buyerUnit}` : ""}
-                    </p>
-                    <div className="pipeline-value">
-                      {money(d.estimatedValue, true)}{" "}
-                      <small>({money(d.estimatedValue)})</small>
-                    </div>
-                    <div className="deal-responsible">
-                      Responsável: {memberName(d.responsibleUserId)}
-                    </div>
-                    <div className="mini-date">
-                      <CalendarClock size={14} /> Prazo proposta:{" "}
-                      {fmtDate(d.proposalDeadline, true)}
-                    </div>
-                    <div className="pipeline-card-actions">
-                      <select
-                        aria-label="Mudar etapa"
-                        value={d.stage}
-                        onChange={e =>
-                          update.mutate({
-                            companyId,
-                            id: d.id,
-                            stage: e.target
-                              .value as (typeof STAGES)[number]["id"],
-                          })
-                        }
-                      >
-                        {STAGES.map(s => (
-                          <option key={s.id} value={s.id}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                      {d.sourceUrl && (
-                        <a
-                          href={d.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Abrir fonte oficial"
-                        >
-                          <ExternalLink size={15} />
-                        </a>
-                      )}
-                    </div>
-                    <details className="deal-edit-details">
-                      <summary>Prioridade, notas e checklist</summary>
-                      <div className="deal-edit-fields">
-                        <Field label="Prioridade">
-                          <select
-                            value={d.priority}
-                            onChange={e =>
-                              update.mutate({
-                                companyId,
-                                id: d.id,
-                                priority: e.target.value as
-                                  | "baixa"
-                                  | "normal"
-                                  | "alta"
-                                  | "urgente",
-                              })
-                            }
-                          >
-                            <option value="baixa">Baixa</option>
-                            <option value="normal">Normal</option>
-                            <option value="alta">Alta</option>
-                            <option value="urgente">Urgente</option>
-                          </select>
-                        </Field>
-                        <Field label="Observações internas">
-                          <textarea
-                            rows={2}
-                            defaultValue={d.notes ?? ""}
-                            onBlur={e => {
-                              if (e.target.value !== (d.notes ?? ""))
-                                update.mutate({
-                                  companyId,
-                                  id: d.id,
-                                  notes: e.target.value,
-                                });
-                            }}
-                            placeholder="Nota da empresa"
-                          />
-                        </Field>
-                        <Field label="Checklist (um item por linha)">
-                          <textarea
-                            rows={3}
-                            defaultValue={d.checklist ?? ""}
-                            onBlur={e => {
-                              if (e.target.value !== (d.checklist ?? ""))
-                                update.mutate({
-                                  companyId,
-                                  id: d.id,
-                                  checklist: e.target.value,
-                                });
-                            }}
-                            placeholder="Conferir edital\nPreparar proposta"
-                          />
-                        </Field>
-                      </div>
-                    </details>
-                  </article>
-                ))
-              ) : (
-                <div className="column-empty">
-                  Sem oportunidades nesta etapa.
-                </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Histórico de alterações</h2>
-            <p>
-              Até 12 dos 100 eventos mais recentes da empresa; eventos mais
-              antigos não são carregados nesta versão.
-            </p>
-          </div>
-        </div>
-        {auditQ.isLoading ? (
-          <LoadingRows />
-        ) : !auditQ.data?.length ? (
-          <p className="empty-inline">
-            Nenhum evento aparece entre os 100 registros mais recentes da
-            empresa.
-          </p>
-        ) : (
-          <div className="audit-list">
-            {auditQ.data.slice(0, 12).map(ev => (
-              <div className="audit-row" key={ev.id}>
-                <span className="audit-mark" />
-                <div>
-                  <b>{ev.action.replaceAll("_", " ").replaceAll(".", " · ")}</b>
-                  <small>
-                    {ev.actorName || `Usuário ${ev.actorUserId}`} ·{" "}
-                    {fmtDate(ev.createdAt, true)} · {ev.entityType}
-                    {ev.entityId ? ` #${ev.entityId}` : ""}
-                  </small>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <Notice>
-        Alterações de etapa ficam registradas no histórico interno com autor e
-        horário. “Ganho” e “Perdido” são etapas registradas pela empresa, não
-        status enviado ao portal.
-      </Notice>
-    </div>
-  );
+/* onboarding and public info */
+.onboarding-wrap,
+.loading-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--canvas);
+}
+.onboarding-card,
+.error-panel {
+  width: min(470px, 100%);
+  padding: 30px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 55px #142c3910;
+}
+.onboarding-card .brand {
+  margin-bottom: 30px;
+}
+.onboarding-card h1 {
+  margin: 9px 0;
+  color: var(--navy);
+  font-size: 26px;
+}
+.onboarding-card > p {
+  color: #718087;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.onboarding-card .eyebrow {
+  font-size: 9px;
+}
+.muted-copy {
+  display: block;
+  margin-top: 16px;
+  color: #89969a;
+  font-size: 9px;
+}
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #758489;
+  font-size: 11px;
+}
+.loading-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: white;
+  background: var(--teal);
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.error-panel h2 {
+  color: var(--navy);
+  font-size: 15px;
+}
+.error-panel p {
+  color: #7a878b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.mobile-brand {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--navy);
+  font-size: 12px;
+}
+.mobile-brand .brand-mark {
+  width: 27px;
+  height: 27px;
+  font-size: 9px;
 }
 
-function DealWorkspace({
-  companyId,
-  dealId,
-}: {
-  companyId: number;
-  dealId: number;
-}) {
-  const [, navigate] = useLocation();
-  const dealsQ = trpc.deals.list.useQuery({ companyId });
-  const tasksQ = trpc.tasks.list.useQuery({ companyId });
-  const docsQ = trpc.documents.list.useQuery({ companyId });
-  const roomQ = trpc.manual.list.useQuery({ companyId, module: "pregao" });
-  const advanceQ = trpc.manual.list.useQuery({
-    companyId,
-    module: "antecipagov",
-  });
-  const auditQ = trpc.company.audit.useQuery({ companyId });
-  const membersQ = trpc.company.members.useQuery({ companyId });
-  const deal = dealsQ.data?.find(d => d.id === dealId);
-  const associatedTasks = (tasksQ.data ?? []).filter(t => t.dealId === dealId);
-  const associatedDocs = (docsQ.data ?? []).filter(d => d.dealId === dealId);
-  const room = (roomQ.data ?? []).filter(x => x.dealId === dealId);
-  const advance = (advanceQ.data ?? []).filter(x => x.dealId === dealId);
-  const history = (auditQ.data ?? [])
-    .filter(x => x.entityType === "deal" && x.entityId === dealId)
-    .slice(0, 10);
-  const [stage, setStage] =
-    useState<(typeof STAGES)[number]["id"]>("oportunidade");
-  const [priority, setPriority] = useState<
-    "baixa" | "normal" | "alta" | "urgente"
-  >("normal");
-  const [notes, setNotes] = useState("");
-  const [checklist, setChecklist] = useState("");
-  const [responsibleUserId, setResponsibleUserId] = useState<number | null>(
-    null
-  );
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskDue, setTaskDue] = useState("");
-  useEffect(() => {
-    if (deal) {
-      setStage(deal.stage);
-      setPriority(deal.priority);
-      setNotes(deal.notes ?? "");
-      setChecklist(deal.checklist ?? "");
-      setResponsibleUserId(deal.responsibleUserId ?? null);
-    }
-  }, [deal?.id, companyId]);
-  const util = trpc.useUtils();
-  const save = trpc.deals.update.useMutation({
-    onSuccess: () => {
-      toast.success("Oportunidade atualizada.");
-      util.deals.list.invalidate({ companyId });
-      util.company.audit.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const addTask = trpc.tasks.create.useMutation({
-    onSuccess: () => {
-      toast.success("Tarefa vinculada.");
-      setTaskTitle("");
-      setTaskDue("");
-      util.tasks.list.invalidate({ companyId });
-      util.company.audit.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  if (dealsQ.isLoading) return <LoadingRows />;
-  if (!deal)
-    return (
-      <Notice kind="error">
-        A oportunidade não foi encontrada neste espaço de empresa.{" "}
-        <Link className="text-link" href="/funil">
-          Voltar ao funil
-        </Link>
-      </Notice>
-    );
-  const submitTask = (e: FormEvent) => {
-    e.preventDefault();
-    addTask.mutate({
-      companyId,
-      title: taskTitle,
-      dealId,
-      dueAt: taskDue ? new Date(taskDue).toISOString() : undefined,
-    });
-  };
-  return (
-    <div className="page-stack">
-      <div className="deal-workspace-top">
-        <div>
-          <span className="source-badge">
-            <span /> {deal.source} · ID {deal.externalId}
-          </span>
-          <h2>{deal.title}</h2>
-          <p>
-            {deal.organization}
-            {deal.buyerUnit ? ` · Unidade: ${deal.buyerUnit}` : ""}
-          </p>
-        </div>
-        <Button variant="secondary" onClick={() => navigate("/funil")}>
-          ← Voltar ao funil
-        </Button>
-      </div>
-      <div className="official-info-grid">
-        <div>
-          <small>OBJETO</small>
-          <p>{deal.object || "Objeto não informado pela fonte."}</p>
-        </div>
-        <div>
-          <small>VALOR ESTIMADO</small>
-          <b>{money(deal.estimatedValue)}</b>
-        </div>
-        <div>
-          <small>MODALIDADE</small>
-          <b>{deal.modality || "Não informada"}</b>
-        </div>
-        <div>
-          <small>LOCALIDADE</small>
-          <b>
-            {[deal.city, deal.state].filter(Boolean).join(" · ") ||
-              "Não informada"}
-          </b>
-        </div>
-        <div>
-          <small>PUBLICAÇÃO</small>
-          <b>{fmtDate(deal.publicationAt, true)}</b>
-        </div>
-        <div>
-          <small>SESSÃO</small>
-          <b>{fmtDate(deal.sessionAt, true)}</b>
-        </div>
-        <div>
-          <small>PRAZO PARA PROPOSTA</small>
-          <b>{fmtDate(deal.proposalDeadline, true)}</b>
-        </div>
-        <div>
-          <small>ÚLTIMA ATUALIZAÇÃO DA FONTE</small>
-          <b>{fmtDate(deal.sourceUpdatedAt, true)}</b>
-        </div>
-      </div>
-      <div className="status-split">
-        <div>
-          <small>ETAPA INTERNA DO FUNIL</small>
-          <b>{stageName(deal.stage)}</b>
-        </div>
-        <div>
-          <small>STATUS INFORMADO PELA FONTE</small>
-          <b>{deal.officialStatus || "Não informado pela fonte"}</b>
-        </div>
-        <div>
-          <small>ORIGEM / SINCRONIZAÇÃO</small>
-          <b>
-            {deal.source} · salvo em {fmtDate(deal.createdAt, true)} · sem
-            atualização automática
-          </b>
-        </div>
-        {deal.sourceUrl && (
-          <a
-            className="btn btn-secondary"
-            href={deal.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Abrir registro oficial <ExternalLink size={14} />
-          </a>
-        )}
-      </div>
-      <div className="workspace-columns">
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Trabalho interno</h2>
-              <p>Responsável, etapa, prioridade, observações e checklist</p>
-            </div>
-          </div>
-          <div className="deal-owner-line">
-            <Building2 size={16} /> Responsável:{" "}
-            {membersQ.data?.find(m => m.userId === deal.responsibleUserId)
-              ?.name || "Nenhum responsável atribuído"}
-          </div>
-          <form
-            className="form-grid workspace-form"
-            onSubmit={e => {
-              e.preventDefault();
-              save.mutate({
-                companyId,
-                id: dealId,
-                stage,
-                priority,
-                notes,
-                checklist,
-                responsibleUserId,
-              });
-            }}
-          >
-            <Field label="Etapa">
-              <select
-                value={stage}
-                onChange={e =>
-                  setStage(e.target.value as (typeof STAGES)[number]["id"])
-                }
-              >
-                {STAGES.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Prioridade">
-              <select
-                value={priority}
-                onChange={e => setPriority(e.target.value as typeof priority)}
-              >
-                <option value="baixa">Baixa</option>
-                <option value="normal">Normal</option>
-                <option value="alta">Alta</option>
-                <option value="urgente">Urgente</option>
-              </select>
-            </Field>
-            <Field label="Responsável">
-              <select
-                value={responsibleUserId ?? ""}
-                onChange={e =>
-                  setResponsibleUserId(
-                    e.target.value ? Number(e.target.value) : null
-                  )
-                }
-              >
-                <option value="">Sem responsável atribuído</option>
-                {(membersQ.data ?? []).map(member => (
-                  <option key={member.userId} value={member.userId}>
-                    {member.name || member.email || `Usuário ${member.userId}`}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Observações internas">
-              <textarea
-                rows={4}
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="Notas da empresa"
-              />
-            </Field>
-            <Field label="Checklist (um item por linha)">
-              <textarea
-                rows={4}
-                value={checklist}
-                onChange={e => setChecklist(e.target.value)}
-                placeholder="Revisar edital\nPreparar documentos\nConferir proposta"
-              />
-            </Field>
-            <div className="form-actions">
-              <Button disabled={save.isPending}>
-                {save.isPending ? "Salvando…" : "Salvar alterações"}
-              </Button>
-            </div>
-          </form>
-          <div className="panel-subsection">
-            <div className="subsection-head">
-              <div>
-                <h3>Tarefas vinculadas</h3>
-                <p>Responsável e prazos internos</p>
-              </div>
-              <Link className="text-link" href="/agenda">
-                Abrir agenda
-              </Link>
-            </div>
-            <form className="inline-form workspace-task" onSubmit={submitTask}>
-              <Field label="Nova tarefa">
-                <input
-                  required
-                  value={taskTitle}
-                  onChange={e => setTaskTitle(e.target.value)}
-                  placeholder="Próxima ação"
-                />
-              </Field>
-              <Field label="Data e hora">
-                <input
-                  type="datetime-local"
-                  value={taskDue}
-                  onChange={e => setTaskDue(e.target.value)}
-                />
-              </Field>
-              <Button disabled={addTask.isPending}>
-                <Plus size={14} /> Adicionar
-              </Button>
-            </form>
-            {associatedTasks.length ? (
-              associatedTasks.map(t => (
-                <div className="workspace-list-row" key={t.id}>
-                  <ListChecks size={15} />
-                  <div>
-                    <b>{t.title}</b>
-                    <small>
-                      {t.dueAt ? fmtDate(t.dueAt, true) : "Sem prazo"} ·{" "}
-                      {membersQ.data?.find(
-                        m => m.userId === t.responsibleUserId
-                      )?.name || "Responsável da empresa"}
-                    </small>
-                  </div>
-                  <span className="badge badge-muted">{t.status}</span>
-                </div>
-              ))
-            ) : (
-              <p className="empty-inline">Nenhuma tarefa vinculada.</p>
-            )}
-          </div>
-        </section>
-        <div className="workspace-side">
-          <section className="panel">
-            <div className="panel-head">
-              <div>
-                <h2>Habilitação associada</h2>
-                <p>Documentos desta oportunidade</p>
-              </div>
-              <Link className="text-link" href="/documentos">
-                Ver documentos
-              </Link>
-            </div>
-            {associatedDocs.length ? (
-              associatedDocs.map(d => (
-                <div className="workspace-list-row" key={d.id}>
-                  <FileCheck2 size={15} />
-                  <div>
-                    <b>{d.name}</b>
-                    <small>
-                      {d.issuer || d.source} · validade{" "}
-                      {fmtDate(d.validityDate)}
-                    </small>
-                  </div>
-                  <span className="badge badge-muted">{d.category}</span>
-                </div>
-              ))
-            ) : (
-              <p className="empty-inline">
-                Sem documentos vinculados. Acesse Habilitação para associar
-                documentos da empresa.
-              </p>
-            )}
-          </section>
-          <section className="panel">
-            <div className="panel-head">
-              <div>
-                <h2>Sala de pregão</h2>
-                <p>Notas internas; sem dados ao vivo</p>
-              </div>
-              <Link className="text-link" href="/pregao">
-                Abrir <ArrowRight size={14} />
-              </Link>
-            </div>
-            {room.length ? (
-              room.map(x => (
-                <div className="workspace-list-row" key={x.id}>
-                  <Gavel size={15} />
-                  <div>
-                    <b>{x.title}</b>
-                    <small>
-                      {x.status} · anotação interna ·{" "}
-                      {fmtDate(x.createdAt, true)}
-                    </small>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="empty-inline">Nenhum registro manual associado.</p>
-            )}
-          </section>
-          <section className="panel">
-            <div className="panel-head">
-              <div>
-                <h2>AntecipaGov</h2>
-                <p>Acompanhamento externo manual</p>
-              </div>
-              <Link className="text-link" href="/antecipagov">
-                Abrir <ArrowRight size={14} />
-              </Link>
-            </div>
-            {advance.length ? (
-              advance.map(x => (
-                <div className="workspace-list-row" key={x.id}>
-                  <CircleDollarSign size={15} />
-                  <div>
-                    <b>{x.title}</b>
-                    <small>
-                      {x.status} · registro interno ·{" "}
-                      {fmtDate(x.createdAt, true)}
-                    </small>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="empty-inline">
-                Sem registros de AntecipaGov associados.
-              </p>
-            )}
-          </section>
-        </div>
-      </div>
-      <section className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Histórico da oportunidade</h2>
-            <p>
-              Filtrado entre os 100 eventos mais recentes da empresa; mudanças
-              anteriores podem não aparecer.
-            </p>
-          </div>
-        </div>
-        {history.length ? (
-          history.map(h => (
-            <div className="audit-row" key={h.id}>
-              <span className="audit-mark" />
-              <div>
-                <b>{h.action.replaceAll("_", " ").replaceAll(".", " · ")}</b>
-                <small>
-                  {h.actorName || `Usuário ${h.actorUserId}`} ·{" "}
-                  {fmtDate(h.createdAt, true)}
-                </small>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="empty-inline">
-            Nenhuma alteração desta oportunidade aparece entre os 100 eventos
-            mais recentes da empresa.
-          </p>
-        )}
-      </section>
-      <Notice>
-        Os valores e datas acima são um registro consultado no PNCP e salvo no
-        momento indicado. O estado do funil, notas, tarefas e marcações de sala
-        são registros internos da empresa.
-      </Notice>
-    </div>
-  );
+@media (max-width: 1150px) {
+  .sidebar {
+    width: 225px;
+  }
+  .main-area {
+    margin-left: 225px;
+  }
+  .page-content {
+    padding-inline: 25px;
+  }
+  .topbar {
+    padding-inline: 25px;
+  }
+  .pipeline-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hero {
+    gap: 40px;
+  }
+}
+@media (max-width: 820px) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    inset: 0 0 auto;
+    width: 100%;
+    height: auto;
+    padding: 10px 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar > .brand,
+  .side-caption,
+  .company-switch,
+  .sidebar-spacer,
+  .sidebar-foot {
+    display: none;
+  }
+  .side-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 3px;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+  }
+  .nav-link {
+    flex: none;
+    min-height: 36px;
+    padding-inline: 10px;
+    gap: 7px;
+    font-size: 10px;
+  }
+  .nav-link svg {
+    width: 14px;
+  }
+  .main-area {
+    margin-left: 0;
+  }
+  .topbar {
+    position: static;
+    height: 52px;
+    padding-inline: 15px;
+  }
+  .mobile-brand {
+    display: flex;
+  }
+  .breadcrumb {
+    display: none;
+  }
+  .top-actions {
+    gap: 4px;
+  }
+  .timezone-pill {
+    font-size: 8px;
+  }
+  .page-content {
+    padding: 22px 16px 35px;
+  }
+  .app-footer {
+    padding-inline: 16px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+    padding-block: 56px;
+  }
+  .hero-copy {
+    max-width: 650px;
+  }
+  .hero-preview {
+    max-width: 590px;
+  }
+  .value-grid {
+    gap: 18px;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+  .external-flow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+@media (max-width: 580px) {
+  body {
+    font-size: 13px;
+  }
+  .wrap {
+    width: min(100% - 30px, 1180px);
+  }
+  .marketing-nav {
+    height: 64px;
+  }
+  .marketing-nav nav {
+    gap: 12px;
+    font-size: 10px;
+  }
+  .marketing-nav nav .btn {
+    min-height: 34px;
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+  .brand {
+    gap: 7px;
+    font-size: 12px;
+  }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+  }
+  .hero {
+    padding-block: 43px 58px;
+  }
+  .hero h1 {
+    font-size: 42px;
+    letter-spacing: -2.4px;
+  }
+  .hero-copy > p {
+    font-size: 13px;
+  }
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .hero-preview {
+    padding: 17px;
+    transform: none;
+  }
+  .value-grid {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+  .marketing-foot {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: 42px;
+  }
+  .marketing-foot h2 {
+    font-size: 23px;
+  }
+  .foot-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .page-heading h1 {
+    font-size: 22px;
+  }
+  .stat-grid {
+    gap: 8px;
+  }
+  .stat-card {
+    min-height: 112px;
+    padding: 11px;
+  }
+  .stat-card > b {
+    font-size: 24px;
+  }
+  .stat-top {
+    font-size: 9px;
+  }
+  .page-content {
+    padding-inline: 12px;
+  }
+  .panel,
+  .filter-panel {
+    padding: 14px;
+  }
+  .filters-grid,
+  .form-grid,
+  .info-columns {
+    grid-template-columns: 1fr;
+  }
+  .form-actions {
+    grid-column: auto;
+  }
+  .filter-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .filter-footer .btn {
+    width: 100%;
+  }
+  .results-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .opportunity-card {
+    grid-template-columns: 1fr;
+    gap: 13px;
+    padding: 14px;
+  }
+  .opp-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .opp-actions {
+    flex-direction: row;
+  }
+  .opp-actions .btn {
+    flex: 1;
+  }
+  .pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+  .pipeline-column {
+    padding: 12px;
+  }
+  .inline-form {
+    grid-template-columns: 1fr;
+  }
+  .agenda-row {
+    gap: 8px;
+  }
+  .agenda-copy small {
+    font-size: 8px;
+  }
+  .agenda-row .badge {
+    font-size: 8px;
+    padding-inline: 6px;
+  }
+  .filter-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .filter-toolbar .field {
+    width: 100%;
+  }
+  .manual-item-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+  .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-function AgendaPage({ companyId }: { companyId: number }) {
-  const tasksQ = trpc.tasks.list.useQuery({ companyId });
-  const dealsQ = trpc.deals.list.useQuery({ companyId });
-  const docsQ = trpc.documents.list.useQuery({ companyId });
-  const membersQ = trpc.company.members.useQuery({ companyId });
-  const [show, setShow] = useState(false);
-  const [title, setTitle] = useState("");
-  const [due, setDue] = useState("");
-  const [dealId, setDealId] = useState("");
-  const [responsibleUserId, setResponsibleUserId] = useState("");
-  const util = trpc.useUtils();
-  const create = trpc.tasks.create.useMutation({
-    onSuccess: () => {
-      toast.success("Tarefa criada.");
-      setShow(false);
-      setTitle("");
-      setDue("");
-      util.tasks.list.invalidate({ companyId });
-      util.summary.get.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const status = trpc.tasks.updateStatus.useMutation({
-    onSuccess: () => util.tasks.list.invalidate({ companyId }),
-    onError: e => toast.error(e.message),
-  });
-  const reschedule = trpc.tasks.reschedule.useMutation({
-    onSuccess: () => {
-      toast.success("Tarefa remarcada.");
-      util.tasks.list.invalidate({ companyId });
-      util.summary.get.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const events = [
-    ...(tasksQ.data ?? []).map(t => ({
-      id: `t${t.id}`,
-      title: t.title,
-      date: t.dueAt,
-      source: "Tarefa interna",
-      status: t.status,
-      kind: "task" as const,
-      taskId: t.id,
-    })),
-    ...(dealsQ.data ?? [])
-      .filter(d => d.sessionAt)
-      .map(d => ({
-        id: `s${d.id}`,
-        title: `Sessão · ${d.title}`,
-        date: d.sessionAt,
-        source: "Data informada pela fonte PNCP",
-        status: "futura",
-        kind: "event" as const,
-        taskId: 0,
-      })),
-    ...(dealsQ.data ?? [])
-      .filter(d => d.proposalDeadline)
-      .map(d => ({
-        id: `p${d.id}`,
-        title: `Prazo de proposta · ${d.title}`,
-        date: d.proposalDeadline,
-        source: "Data informada pela fonte PNCP",
-        status: "futura",
-        kind: "event" as const,
-        taskId: 0,
-      })),
-    ...(docsQ.data ?? [])
-      .filter(d => d.validityDate)
-      .map(d => ({
-        id: `d${d.id}`,
-        title: `Validade · ${d.name}`,
-        date: new Date(`${d.validityDate}T12:00:00-03:00`),
-        source: d.source,
-        status: "futura",
-        kind: "event" as const,
-        taskId: 0,
-      })),
-  ].sort((a, b) => (a.date?.getTime() ?? 9e15) - (b.date?.getTime() ?? 9e15));
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    create.mutate({
-      companyId,
-      title,
-      dueAt: due ? new Date(due).toISOString() : undefined,
-      dealId: dealId ? Number(dealId) : undefined,
-      responsibleUserId: responsibleUserId
-        ? Number(responsibleUserId)
-        : undefined,
-    });
-  };
-  return (
-    <div className="page-stack">
-      <Notice>
-        Datas oficiais são mostradas como informadas pela fonte. A agenda não
-        altera datas no PNCP. Fuso de apresentação: America/São_Paulo.
-      </Notice>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Agenda consolidada</h2>
-            <p>Sessões, prazos, tarefas e validade de documentos</p>
-          </div>
-          <Button onClick={() => setShow(!show)}>
-            <Plus size={15} /> Nova tarefa
-          </Button>
-        </div>
-        {show && (
-          <form className="inline-form task-form" onSubmit={submit}>
-            <Field label="Tarefa">
-              <input
-                required
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="Ex.: revisar planilha de preços"
-              />
-            </Field>
-            <Field label="Data e hora">
-              <input
-                type="datetime-local"
-                value={due}
-                onChange={e => setDue(e.target.value)}
-              />
-            </Field>
-            <Field label="Responsável">
-              <select
-                value={responsibleUserId}
-                onChange={e => setResponsibleUserId(e.target.value)}
-              >
-                <option value="">Eu (padrão)</option>
-                {(membersQ.data ?? []).map(m => (
-                  <option key={m.userId} value={m.userId}>
-                    {m.name || m.email || `Usuário ${m.userId}`}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Vincular à oportunidade">
-              <select value={dealId} onChange={e => setDealId(e.target.value)}>
-                <option value="">Empresa (sem vínculo)</option>
-                {(dealsQ.data ?? []).map(d => (
-                  <option value={d.id} key={d.id}>
-                    {d.title}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Button disabled={create.isPending}>Salvar tarefa</Button>
-          </form>
-        )}
-        {tasksQ.isLoading ? (
-          <LoadingRows />
-        ) : events.length === 0 ? (
-          <Empty
-            title="Agenda sem itens"
-            text="Crie uma tarefa ou consulte oportunidades para incluir datas oficiais."
-          />
-        ) : (
-          <div className="agenda-list">
-            {events.map(ev => {
-              const past = ev.date && ev.date.getTime() < Date.now();
-              const label =
-                ev.kind === "task"
-                  ? ev.status === "concluida"
-                    ? "Concluída"
-                    : ev.status === "cancelada"
-                      ? "Cancelada"
-                      : ev.status === "remarcada"
-                        ? "Remarcada"
-                        : past
-                          ? "Atrasada"
-                          : "Futura"
-                  : past
-                    ? "Data passada"
-                    : "Futura";
-              return (
-                <div className="agenda-row" key={ev.id}>
-                  <div
-                    className={`agenda-icon ${past && ev.status === "aberta" ? "is-late" : ""}`}
-                  >
-                    {ev.kind === "task" ? (
-                      <ListChecks size={17} />
-                    ) : (
-                      <CalendarDays size={17} />
-                    )}
-                  </div>
-                  <div className="agenda-copy">
-                    <b>{ev.title}</b>
-                    <small>
-                      {ev.date
-                        ? fmtDate(ev.date, true)
-                        : "Data sem horário informado"}{" "}
-                      · {ev.source}
-                      {ev.kind === "task"
-                        ? ` · Responsável: ${membersQ.data?.find(m => m.userId === tasksQ.data?.find(t => t.id === ev.taskId)?.responsibleUserId)?.name || "eu"}`
-                        : ""}
-                    </small>
-                  </div>
-                  <span
-                    className={`badge ${label === "Atrasada" ? "badge-warn" : label === "Concluída" ? "badge-good" : "badge-muted"}`}
-                  >
-                    {label}
-                  </span>
-                  {ev.kind === "task" && (
-                    <select
-                      className="task-status-select"
-                      aria-label={`Estado de tarefa: ${ev.title}`}
-                      value={ev.status}
-                      onChange={e => {
-                        const next = e.target.value as
-                          | "aberta"
-                          | "concluida"
-                          | "cancelada"
-                          | "remarcada";
-                        if (next === "remarcada") {
-                          const value = window.prompt(
-                            "Informe a nova data e hora local (AAAA-MM-DDTHH:mm)",
-                            ev.date
-                              ? new Intl.DateTimeFormat("en-CA", {
-                                  timeZone: "America/Sao_Paulo",
-                                  year: "numeric",
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hourCycle: "h23",
-                                })
-                                  .format(ev.date)
-                                  .replace(", ", "T")
-                              : ""
-                          );
-                          if (value) {
-                            const parsed = new Date(value);
-                            if (Number.isNaN(parsed.getTime()))
-                              toast.error(
-                                "Data inválida. Use AAAA-MM-DDTHH:mm."
-                              );
-                            else
-                              reschedule.mutate({
-                                companyId,
-                                id: ev.taskId,
-                                dueAt: parsed.toISOString(),
-                              });
-                          }
-                        } else
-                          status.mutate({
-                            companyId,
-                            id: ev.taskId,
-                            status: next,
-                          });
-                      }}
-                    >
-                      <option value="aberta">Aberta</option>
-                      <option value="remarcada">Remarcar…</option>
-                      <option value="cancelada">Cancelada</option>
-                      <option value="concluida">Concluída</option>
-                    </select>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+.public-standalone {
+  min-height: 100vh;
+  background: var(--canvas);
 }
-
-function DocumentsPage({ companyId }: { companyId: number }) {
-  const q = trpc.documents.list.useQuery({ companyId });
-  const dealsQ = trpc.deals.list.useQuery({ companyId });
-  const membersQ = trpc.company.members.useQuery({ companyId });
-  const util = trpc.useUtils();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("Habilitação");
-  const [issuer, setIssuer] = useState("");
-  const [validity, setValidity] = useState("");
-  const [dealId, setDealId] = useState("");
-  const [responsibleUserId, setResponsibleUserId] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const create = trpc.documents.create.useMutation({
-    onSuccess: () => {
-      toast.success("Documento cadastrado.");
-      setOpen(false);
-      setName("");
-      setFile(null);
-      util.documents.list.invalidate({ companyId });
-      util.summary.get.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const verify = trpc.documents.verified.useMutation({
-    onSuccess: () => {
-      toast.success("Verificação registrada como interna.");
-      util.documents.list.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    let fileBase64: string | undefined;
-    let mimeType:
-      | "application/pdf"
-      | "image/png"
-      | "image/jpeg"
-      | "application/zip"
-      | "application/x-zip-compressed"
-      | undefined;
-    if (file) {
-      if (file.size > 8 * 1024 * 1024) {
-        toast.error("O arquivo deve ter até 8 MB.");
-        return;
-      }
-      const ok = [
-        "application/pdf",
-        "image/png",
-        "image/jpeg",
-        "application/zip",
-        "application/x-zip-compressed",
-      ];
-      if (!ok.includes(file.type)) {
-        toast.error("Anexe PDF, PNG, JPEG ou ZIP.");
-        return;
-      }
-      mimeType = file.type as typeof mimeType;
-      fileBase64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () =>
-          resolve(String(reader.result).split(",")[1] ?? "");
-        reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
-        reader.readAsDataURL(file);
-      });
-    }
-    create.mutate({
-      companyId,
-      name,
-      category,
-      issuer: issuer || undefined,
-      validityDate: validity || undefined,
-      dealId: dealId ? Number(dealId) : undefined,
-      responsibleUserId: responsibleUserId
-        ? Number(responsibleUserId)
-        : undefined,
-      fileName: file?.name,
-      mimeType,
-      fileBase64,
-    });
-  };
-  const today = todaySP();
-  const rows = q.data ?? [];
-  return (
-    <div className="page-stack">
-      <Notice kind="warning">
-        O cadastro de validade é informação da empresa, não verificação
-        automática no órgão emissor. Arquivos são enviados ao armazenamento do
-        projeto e os downloads passam por validação de sessão e empresa. Use
-        somente arquivo autorizado de até 8 MB.
-      </Notice>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Documentos da empresa</h2>
-            <p>{rows.length} registros · validade informada pela empresa</p>
-          </div>
-          <Button onClick={() => setOpen(!open)}>
-            <Plus size={15} /> Cadastrar documento
-          </Button>
-        </div>
-        {open && (
-          <form className="form-grid" onSubmit={submit}>
-            <Field label="Nome do documento">
-              <input
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Ex.: Certidão conjunta federal"
-              />
-            </Field>
-            <Field label="Categoria">
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-              >
-                <option>Habilitação</option>
-                <option>Certificação</option>
-                <option>Fiscal</option>
-                <option>Trabalhista</option>
-                <option>Financeiro</option>
-                <option>Outro</option>
-              </select>
-            </Field>
-            <Field label="Órgão emissor">
-              <input
-                value={issuer}
-                onChange={e => setIssuer(e.target.value)}
-                placeholder="Órgão / entidade emissora"
-              />
-            </Field>
-            <Field label="Validade">
-              <input
-                type="date"
-                value={validity}
-                onChange={e => setValidity(e.target.value)}
-              />
-            </Field>
-            <Field label="Responsável">
-              <select
-                value={responsibleUserId}
-                onChange={e => setResponsibleUserId(e.target.value)}
-              >
-                <option value="">Eu (padrão)</option>
-                {(membersQ.data ?? []).map(m => (
-                  <option key={m.userId} value={m.userId}>
-                    {m.name || m.email || `Usuário ${m.userId}`}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Vincular à oportunidade">
-              <select value={dealId} onChange={e => setDealId(e.target.value)}>
-                <option value="">Empresa</option>
-                {(dealsQ.data ?? []).map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.title}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field
-              label="Arquivo (opcional)"
-              hint="PDF, PNG, JPEG ou ZIP · máximo 8 MB"
-            >
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.zip"
-                onChange={e => setFile(e.target.files?.[0] ?? null)}
-              />
-            </Field>
-            <div className="form-actions">
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={() => setOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button disabled={create.isPending}>
-                {create.isPending ? "Salvando…" : "Salvar documento"}
-              </Button>
-            </div>
-          </form>
-        )}
-        {q.isLoading ? (
-          <LoadingRows />
-        ) : !rows.length ? (
-          <Empty
-            title="Nenhum documento cadastrado"
-            text="Registre validade e responsável de certidões e certificações. Nenhuma emissão será declarada sem confirmação do órgão."
-          />
-        ) : (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Documento</th>
-                  <th>Emissor / origem</th>
-                  <th>Responsável</th>
-                  <th>Validade</th>
-                  <th>Última verificação</th>
-                  <th>Situação</th>
-                  <th>Arquivo</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map(d => {
-                  const days = d.validityDate
-                    ? Math.ceil(
-                        (new Date(
-                          `${d.validityDate}T12:00:00-03:00`
-                        ).getTime() -
-                          new Date(`${today}T12:00:00-03:00`).getTime()) /
-                          86400000
-                      )
-                    : null;
-                  const status =
-                    days === null
-                      ? "Sem validade"
-                      : days < 0
-                        ? "Vencido"
-                        : days <= 30
-                          ? "Vencendo"
-                          : "Em dia";
-                  return (
-                    <tr key={d.id}>
-                      <td>
-                        <b>{d.name}</b>
-                        <small>{d.category}</small>
-                      </td>
-                      <td>
-                        {d.issuer || "Emissor não informado"}
-                        <small>{d.source}</small>
-                      </td>
-                      <td>
-                        {membersQ.data?.find(
-                          m => m.userId === d.responsibleUserId
-                        )?.name || "Responsável da empresa"}
-                      </td>
-                      <td>{fmtDate(d.validityDate)}</td>
-                      <td>
-                        {d.lastVerifiedAt
-                          ? fmtDate(d.lastVerifiedAt, true)
-                          : "Sem conferência"}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${status === "Vencido" ? "badge-warn" : status === "Em dia" ? "badge-good" : "badge-muted"}`}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                      <td>
-                        {d.sizeBytes ? (
-                          <a
-                            className="inline-link"
-                            href={`/api/documents/${d.id}/download`}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <FileText size={14} /> Abrir
-                          </a>
-                        ) : (
-                          "Sem arquivo"
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          className="small-action"
-                          onClick={() => verify.mutate({ companyId, id: d.id })}
-                        >
-                          Registrar conferência
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+.public-document {
+  padding-block: 26px 70px;
 }
-
-function ManualPage({
-  companyId,
-  module,
-}: {
-  companyId: number;
-  module: "pregao" | "antecipagov";
-}) {
-  const q = trpc.manual.list.useQuery({ companyId, module });
-  const dealsQ = trpc.deals.list.useQuery({ companyId });
-  const util = trpc.useUtils();
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState("");
-  const [status, setStatus] = useState("Registro interno");
-  const [dealId, setDealId] = useState("");
-  const add = trpc.manual.create.useMutation({
-    onSuccess: () => {
-      toast.success("Anotação interna registrada.");
-      setTitle("");
-      setNote("");
-      util.manual.list.invalidate({ companyId, module });
-    },
-    onError: e => toast.error(e.message),
-  });
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    add.mutate({
-      companyId,
-      module,
-      title,
-      note,
-      status,
-      dealId: dealId ? Number(dealId) : undefined,
-      externalUrl:
-        module === "antecipagov"
-          ? "https://antecipagov.comprasnet.gov.br/"
-          : undefined,
-    });
-  };
-  const isRoom = module === "pregao";
-  return (
-    <div className="page-stack">
-      {isRoom ? (
-        <Notice kind="warning">
-          <b>Sala manual — sem conexão em tempo real.</b> Os registros abaixo
-          foram informados por usuários da empresa. Não representam status
-          oficial, mensagens do pregoeiro, lances ou ranking do portal. Nenhuma
-          ação é enviada ao sistema de disputa.
-        </Notice>
-      ) : (
-        <Notice kind="warning">
-          <b>Sem integração oficial conectada.</b> O acesso ao AntecipaGov
-          ocorre no portal oficial com autenticação própria. Este sistema não
-          pede senha Gov.br, não consulta elegibilidade e não solicita crédito.
-          Registre somente marcos confirmados por você.
-        </Notice>
-      )}
-      <div className="external-flow">
-        <div className="external-step">
-          <span>1</span>
-          <div>
-            <b>
-              {isRoom ? "Consulte o portal oficial" : "Acesse o AntecipaGov"}
-            </b>
-            <small>
-              {isRoom
-                ? "Confira a sessão e decisões diretamente no ambiente do órgão."
-                : "Use sua autenticação Gov.br/certificado diretamente no serviço."}
-            </small>
-          </div>
-        </div>
-        <div className="external-step">
-          <span>2</span>
-          <div>
-            <b>Retorne e registre o que confirmou</b>
-            <small>
-              Uma anotação neste painel permanece identificada como interna.
-            </small>
-          </div>
-        </div>
-        <a
-          className="btn btn-secondary"
-          href={
-            isRoom
-              ? "https://pncp.gov.br/"
-              : "https://antecipagov.comprasnet.gov.br/"
-          }
-          target="_blank"
-          rel="noreferrer"
-        >
-          Abrir serviço oficial <ExternalLink size={15} />
-        </a>
-      </div>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>
-              {isRoom ? "Anotações da sala" : "Acompanhamento de cotações"}
-            </h2>
-            <p>Registro interno · autor e horário preservados</p>
-          </div>
-          <span className="badge badge-muted">Sem sincronização</span>
-        </div>
-        <form className="form-grid" onSubmit={submit}>
-          <Field
-            label={isRoom ? "Título da anotação" : "Cotação / etapa confirmada"}
-          >
-            <input
-              required
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder={
-                isRoom
-                  ? "Ex.: sessão consultada no portal"
-                  : "Ex.: proposta recebida no AntecipaGov"
-              }
-            />
-          </Field>
-          <Field label="Oportunidade vinculada">
-            <select value={dealId} onChange={e => setDealId(e.target.value)}>
-              <option value="">Sem vínculo</option>
-              {(dealsQ.data ?? []).map(d => (
-                <option key={d.id} value={d.id}>
-                  {d.title}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Estado registrado internamente">
-            <select value={status} onChange={e => setStatus(e.target.value)}>
-              {(isRoom
-                ? [
-                    "Registro interno",
-                    "Aguardando consulta ao portal",
-                    "Sessão consultada pelo usuário",
-                    "Encerrado conforme registro do usuário",
-                  ]
-                : [
-                    "Registro interno",
-                    "Aguardando etapa no serviço externo",
-                    "Cotação criada pelo fornecedor",
-                    "Proposta recebida conforme registro do usuário",
-                    "Concluída externamente conforme registro do usuário",
-                  ]
-              ).map(s => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Observação">
-            <textarea
-              rows={3}
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="Inclua contexto sem registrar senhas ou credenciais."
-            />
-          </Field>
-          <div className="form-actions">
-            <Button disabled={add.isPending}>
-              <Plus size={15} /> Registrar anotação
-            </Button>
-          </div>
-        </form>
-        {q.isLoading ? (
-          <LoadingRows />
-        ) : !q.data?.length ? (
-          <Empty
-            title="Nenhuma anotação ainda"
-            text="Use o formulário após consultar a fonte externa. Este módulo não simula atividade nem conexão."
-          />
-        ) : (
-          <div className="manual-list">
-            {q.data.map(item => (
-              <article className="manual-item" key={item.id}>
-                <div className="manual-avatar">
-                  {isRoom ? (
-                    <Gavel size={17} />
-                  ) : (
-                    <CircleDollarSign size={17} />
-                  )}
-                </div>
-                <div className="manual-text">
-                  <div className="manual-item-head">
-                    <b>{item.title}</b>
-                    <span className="badge badge-muted">{item.status}</span>
-                  </div>
-                  <p>{item.note || "Sem observações."}</p>
-                  <small>
-                    Registro interno · {fmtDate(item.createdAt, true)}
-                  </small>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+.public-doc-top {
+  margin-bottom: 20px;
 }
-
-function AntecipagovPage({ companyId }: { companyId: number }) {
-  const notes = trpc.manual.list.useQuery({ companyId, module: "antecipagov" });
-  return (
-    <div className="page-stack">
-      <ManualPage companyId={companyId} module="antecipagov" />
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Como o fluxo externo funciona</h2>
-            <p>Referência à orientação oficial do serviço</p>
-          </div>
-          <a
-            href="https://antecipagov.comprasnet.gov.br/AjudaFornecedor.aspx"
-            target="_blank"
-            rel="noreferrer"
-            className="text-link"
-          >
-            Ajuda do fornecedor <ExternalLink size={14} />
-          </a>
-        </div>
-        <div className="info-columns">
-          <div>
-            <b>Autenticação no serviço</b>
-            <p>
-              O portal informa acesso por Gov.br ou certificado digital. Faça
-              essa etapa diretamente no serviço; não compartilhe credenciais com
-              o Elite Pregão Pro.
-            </p>
-          </div>
-          <div>
-            <b>Propostas e acompanhamento</b>
-            <p>
-              O fornecedor registra cotações no portal e acompanha as etapas em
-              “Minhas Cotações”. Este painel só mantém notas internas
-              confirmadas pelo usuário.
-            </p>
-          </div>
-          <div>
-            <b>Sem estimativa financeira</b>
-            <p>
-              Não calculamos elegibilidade, margem ou aprovação. Os limites e
-              condições devem ser confirmados no portal e com as instituições
-              habilitadas.
-            </p>
-          </div>
-        </div>
-        {notes.error && (
-          <Notice kind="error">
-            Não foi possível ler os registros. Tente novamente.
-          </Notice>
-        )}
-      </div>
-    </div>
-  );
+.public-doc-top h1 {
+  margin: 15px 0 0;
+  color: var(--navy);
+  font-size: 27px;
+  letter-spacing: -0.7px;
 }
-
-function ProfilesPage({ companyId }: { companyId: number }) {
-  const q = trpc.profiles.list.useQuery({ companyId });
-  const util = trpc.useUtils();
-  const [name, setName] = useState("");
-  const [keywords, setKeywords] = useState("");
-  const [states, setStates] = useState("");
-  const [modalities, setModalities] = useState("");
-  const [minValue, setMin] = useState("");
-  const [maxValue, setMax] = useState("");
-  const [active, setActive] = useState(true);
-  const save = trpc.profiles.save.useMutation({
-    onSuccess: () => {
-      toast.success("Perfil salvo.");
-      setName("");
-      util.profiles.list.invalidate({ companyId });
-    },
-    onError: e => toast.error(e.message),
-  });
-  return (
-    <div className="page-stack">
-      <Notice>
-        Um perfil só influencia buscas quando estiver ativo. O mecanismo não
-        calcula aderência nem score. A busca oficial do PNCP continua sendo
-        iniciada manualmente.
-      </Notice>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Novo perfil de busca</h2>
-            <p>Critérios explícitos da empresa</p>
-          </div>
-        </div>
-        <form
-          className="form-grid"
-          onSubmit={e => {
-            e.preventDefault();
-            save.mutate({
-              companyId,
-              name,
-              keywords,
-              states,
-              modalities,
-              minValue: minValue ? Number(minValue) : undefined,
-              maxValue: maxValue ? Number(maxValue) : undefined,
-              active,
-            });
-          }}
-        >
-          <Field label="Nome">
-            <input
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Ex.: Serviços de TI — Sudeste"
-            />
-          </Field>
-          <Field label="Palavras-chave">
-            <input
-              value={keywords}
-              onChange={e => setKeywords(e.target.value)}
-              placeholder="separadas por vírgula"
-            />
-          </Field>
-          <Field label="Estados">
-            <input
-              value={states}
-              onChange={e => setStates(e.target.value.toUpperCase())}
-              placeholder="SP, MG, RJ"
-            />
-          </Field>
-          <Field label="Códigos de modalidade PNCP">
-            <input
-              value={modalities}
-              onChange={e => setModalities(e.target.value)}
-              placeholder="Ex.: 6, 8"
-            />
-          </Field>
-          <Field label="Valor mínimo (R$)">
-            <input
-              inputMode="decimal"
-              value={minValue}
-              onChange={e => setMin(e.target.value.replace(",", "."))}
-            />
-          </Field>
-          <Field label="Valor máximo (R$)">
-            <input
-              inputMode="decimal"
-              value={maxValue}
-              onChange={e => setMax(e.target.value.replace(",", "."))}
-            />
-          </Field>
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={e => setActive(e.target.checked)}
-            />{" "}
-            Perfil ativo
-          </label>
-          <div className="form-actions">
-            <Button disabled={save.isPending}>Salvar perfil</Button>
-          </div>
-        </form>
-      </div>
-      <div className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Perfis cadastrados</h2>
-            <p>{q.data?.filter(p => p.active === 1).length ?? 0} ativos</p>
-          </div>
-        </div>
-        {q.isLoading ? (
-          <LoadingRows />
-        ) : !q.data?.length ? (
-          <Empty
-            title="Nenhum perfil ativo"
-            text="Crie critérios para personalizar sua busca. Até lá, não apresentamos resultados gerais como se fossem personalizados."
-          />
-        ) : (
-          <div className="profile-list">
-            {q.data.map(p => (
-              <div className="profile-item" key={p.id}>
-                <div>
-                  <b>{p.name}</b>
-                  <small>
-                    {p.keywords || "Sem palavras-chave"} ·{" "}
-                    {p.states || "Todos os estados"} · Modalidades:{" "}
-                    {p.modalities || "todas"}
-                  </small>
-                </div>
-                <div className="profile-actions">
-                  <span
-                    className={`badge ${p.active ? "badge-good" : "badge-muted"}`}
-                  >
-                    {p.active ? "Ativo" : "Inativo"}
-                  </span>
-                  <button
-                    className="small-action"
-                    onClick={() =>
-                      save.mutate({
-                        companyId,
-                        id: p.id,
-                        name: p.name,
-                        keywords: p.keywords ?? undefined,
-                        states: p.states ?? undefined,
-                        modalities: p.modalities ?? undefined,
-                        minValue:
-                          p.minValue == null ? undefined : Number(p.minValue),
-                        maxValue:
-                          p.maxValue == null ? undefined : Number(p.maxValue),
-                        active: !p.active,
-                      })
-                    }
-                  >
-                    {p.active ? "Desativar" : "Ativar"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+.public-document > .page-stack {
+  max-width: 900px;
 }
-
-function PlansPage() {
-  return (
-    <div className="page-stack">
-      <Notice kind="warning">
-        A configuração comercial ainda não foi fornecida. Não há cobrança ou
-        botão de compra ativo.
-      </Notice>
-      <div className="plans-grid">
-        <article className="plan-card">
-          <div className="plan-mark">ELITE · PRO</div>
-          <h2>Planos em configuração</h2>
-          <p>
-            Preço, periodicidade, limites, cancelamento e condições precisam ser
-            aprovados antes de exibir uma oferta comercial.
-          </p>
-          <ul>
-            <li>
-              <CheckCircle2 /> Gestão de oportunidades e prazos
-            </li>
-            <li>
-              <CheckCircle2 /> Organização da habilitação
-            </li>
-            <li>
-              <CheckCircle2 /> Dados isolados por empresa
-            </li>
-          </ul>
-          <Button variant="secondary" disabled>
-            Assinatura indisponível
-          </Button>
-        </article>
-        <div className="plan-note">
-          <ShieldCheck size={21} />
-          <div>
-            <b>Sem pagamento nesta versão</b>
-            <p>
-              O produto não inicia transações até que provedor, credenciais,
-              preço e cancelamento estejam configurados e testados.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+.public-document .legal-copy {
+  margin-top: 0;
 }
-function SupportPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [ticket, setTicket] = useState<number | null>(null);
-  const create = trpc.support.create.useMutation({
-    onSuccess: r => {
-      setTicket(r.ticket);
-      toast.success("Solicitação registrada.");
-      setName("");
-      setEmail("");
-      setSubject("");
-      setMessage("");
-    },
-    onError: e => toast.error(e.message),
-  });
-  return (
-    <div className="page-stack">
-      <Notice kind="warning">
-        O formulário registra a solicitação no banco. O envio de e-mail ou prazo
-        de resposta depende de configuração pelo administrador e não está ativo.
-      </Notice>
-      <div className="panel narrow-panel">
-        <h2>Fale com o suporte</h2>
-        <p>
-          Não inclua senhas, documentos pessoais ou credenciais de portais
-          governamentais.
-        </p>
-        {ticket && (
-          <Notice kind="success">
-            Solicitação #{ticket} registrada. Ainda não existe canal de resposta
-            configurado nesta instalação.
-          </Notice>
-        )}
-        <form
-          className="stack-form"
-          onSubmit={e => {
-            e.preventDefault();
-            create.mutate({ name, email, subject, message });
-          }}
-        >
-          <Field label="Seu nome">
-            <input
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </Field>
-          <Field label="E-mail para retorno">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </Field>
-          <Field label="Assunto">
-            <input
-              required
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-            />
-          </Field>
-          <Field label="Mensagem">
-            <textarea
-              required
-              minLength={10}
-              rows={5}
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-            />
-          </Field>
-          <Button disabled={create.isPending}>
-            {create.isPending ? "Registrando…" : "Registrar solicitação"}
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
+@media (max-width: 580px) {
+  .public-doc-top h1 {
+    font-size: 22px;
+  }
 }
-function LegalPage({ privacy }: { privacy: boolean }) {
-  return (
-    <div className="page-stack">
-      <Notice kind="warning">
-        Documento-base para revisão antes de uso comercial. Complemente com os
-        dados legais do operador, canal de contato e revisão jurídica
-        pertinente.
-      </Notice>
-      <article className="panel legal-copy">
-        {privacy ? (
-          <>
-            <h2>Política de Privacidade — versão-base</h2>
-            <p>
-              Esta instalação do Elite Pregão Pro utiliza dados de conta
-              fornecidos pelo provedor de autenticação, dados cadastrais de
-              empresa, oportunidades selecionadas, tarefas, metadados de
-              documentos e registros inseridos pelos usuários.
-            </p>
-            <h3>Finalidade e acesso</h3>
-            <p>
-              Os dados são usados para operar os módulos escolhidos pela
-              empresa. As consultas internas verificam a associação da conta à
-              empresa. Usuários com acesso válido poderão ver registros
-              compartilhados dentro da mesma empresa.
-            </p>
-            <h3>Documentos e credenciais</h3>
-            <p>
-              Arquivos anexados ficam no armazenamento configurado para o
-              projeto, com download sujeito à sessão e à autorização da empresa.
-              Não informe senhas de Gov.br ou de portais públicos. Integrações
-              externas estão desativadas até autorização.
-            </p>
-            <h3>Retenção e direitos</h3>
-            <p>
-              O operador deve definir prazos de retenção, canal para
-              solicitações de titulares, encarregado quando aplicável e
-              procedimento de exclusão/exportação antes de disponibilizar
-              comercialmente o serviço.
-            </p>
-            <h3>Contato</h3>
-            <p>
-              O contato de privacidade precisa ser configurado pelo operador. O
-              formulário de suporte, nesta versão, registra solicitação mas não
-              envia e-mail.
-            </p>
-          </>
-        ) : (
-          <>
-            <h2>Termos de Uso — versão-base</h2>
-            <p>
-              O Elite Pregão Pro apoia organização interna de oportunidades,
-              prazos e documentos. A empresa e seus usuários devem conferir
-              editais, avisos e dados diretamente na fonte oficial antes de
-              tomar decisões.
-            </p>
-            <h3>Fontes e atualizações</h3>
-            <p>
-              Consultas oficiais dependem da disponibilidade da fonte.
-              Resultados podem atrasar, não estar completos ou mudar. A
-              plataforma identifica origem e horário de consulta e não promete
-              sincronização em tempo real.
-            </p>
-            <h3>Atos em portais públicos</h3>
-            <p>
-              O usuário continua responsável por participar de licitações e
-              executar atos externos no portal competente. A sala de pregão
-              atual é manual. A plataforma não envia lances e não solicita
-              operações financeiras.
-            </p>
-            <h3>Documentos e decisões</h3>
-            <p>
-              O usuário é responsável por exatidão, validade, permissão de uso e
-              revisão dos documentos cadastrados. O registro interno não
-              comprova emissão, autenticidade ou aprovação pelo órgão emissor.
-            </p>
-            <h3>Disponibilidade e plano comercial</h3>
-            <p>
-              O serviço depende de infraestrutura e fontes externas. Preços,
-              limites, periodicidade e condições de cancelamento devem ser
-              publicados pelo operador antes de cobrança; pagamentos permanecem
-              desabilitados.
-            </p>
-            <h3>Operador e contato</h3>
-            <p>
-              Identificação jurídica do operador, foro, canal de atendimento e
-              revisão final destes termos precisam ser adicionados antes do
-              lançamento comercial.
-            </p>
-          </>
-        )}
-      </article>
-    </div>
-  );
+.deal-responsible {
+  margin-top: 5px;
+  color: #829095;
+  font-size: 8px;
 }
-
-function PublicStandalone({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="public-standalone">
-      <header className="marketing-nav wrap">
-        <Link href="/" className="brand">
-          <span className="brand-mark">EP</span>
-          <span>
-            Elite <b>Pregão Pro</b>
-          </span>
-        </Link>
-        <nav>
-          <Link href="/">Início</Link>
-          <Button variant="secondary" onClick={startLogin}>
-            Entrar
-          </Button>
-        </nav>
-      </header>
-      <main className="public-document wrap">
-        <div className="public-doc-top">
-          <Link href="/" className="text-link">
-            ← Voltar ao site
-          </Link>
-          <h1>{title}</h1>
-        </div>
-        {children}
-      </main>
-    </div>
-  );
+.deal-edit-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eff2f1;
+}
+.deal-edit-details summary {
+  color: var(--teal-dark);
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 700;
+}
+.deal-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 9px;
+}
+.deal-edit-fields input,
+.deal-edit-fields select,
+.deal-edit-fields textarea {
+  min-height: 31px;
+  padding: 7px;
+  font-size: 9px;
+}
+.deal-edit-fields textarea {
+  min-height: 55px;
+}
+.audit-list {
+  display: flex;
+  flex-direction: column;
+}
+.audit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #eff2f1;
+}
+.audit-mark {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: #8abbb4;
+  border-radius: 50%;
+}
+.audit-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.audit-row b {
+  color: #40575f;
+  font-size: 9px;
+}
+.audit-row small {
+  color: #89969a;
+  font-size: 8px;
+}
+.empty-inline {
+  color: #8b989c;
+  font-size: 10px;
+}
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.task-status-select {
+  width: 102px;
+  min-height: 30px;
+  height: 30px;
+  padding: 4px 6px;
+  color: #52646a;
+  font-size: 8px;
+}
+.disabled-notifications {
+  cursor: default;
+}
+.disabled-notifications:hover {
+  background: transparent;
+  color: #64747a;
+}
+.pipeline-title-link {
+  display: block;
+  margin: 8px 0 5px;
+  color: #30474f;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+.pipeline-title-link:hover {
+  color: var(--teal-dark);
+  text-decoration: underline;
+}
+.deal-workspace-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.deal-workspace-top h2 {
+  margin: 9px 0 5px;
+  color: var(--navy);
+  font-size: 17px;
+  line-height: 1.5;
+}
+.deal-workspace-top p {
+  margin: 0;
+  color: #78868b;
+  font-size: 10px;
+}
+.official-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: #e7edeb;
+  border: 1px solid #e7edeb;
+  border-radius: 9px;
+}
+.official-info-grid > div {
+  min-width: 0;
+  padding: 13px;
+  background: #fff;
+}
+.official-info-grid small,
+.status-split small {
+  display: block;
+  color: #89969a;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.official-info-grid b {
+  display: block;
+  margin-top: 7px;
+  color: #425860;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.official-info-grid p {
+  margin: 7px 0 0;
+  color: #596d73;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.status-split {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 13px 16px;
+  background: #eef5f3;
+  border: 1px solid #dfeae7;
+  border-radius: 9px;
+}
+.status-split > div {
+  min-width: 130px;
+}
+.status-split b {
+  display: block;
+  margin-top: 5px;
+  color: #3e5b61;
+  font-size: 9px;
+}
+.status-split .btn {
+  margin-left: auto;
+}
+.workspace-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 15px;
+  align-items: start;
+}
+.workspace-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.deal-owner-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  color: #607278;
+  background: #f7f9f8;
+  border-radius: 7px;
+  font-size: 10px;
+}
+.deal-owner-line svg {
+  color: var(--teal);
+}
+.workspace-form {
+  margin-bottom: 10px;
+}
+.panel-subsection {
+  margin-top: 17px;
+  padding-top: 16px;
+  border-top: 1px solid #edf1ef;
+}
+.subsection-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.subsection-head h3 {
+  margin: 0;
+  color: #40565e;
+  font-size: 12px;
+}
+.subsection-head p {
+  margin: 4px 0 0;
+  color: #89969a;
+  font-size: 9px;
+}
+.workspace-task {
+  grid-template-columns: 1fr 0.8fr auto;
+}
+.workspace-list-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 0;
+  border-top: 1px solid #eff2f1;
+}
+.workspace-list-row > svg {
+  flex: none;
+  color: var(--teal);
+}
+.workspace-list-row > div {
+  flex: 1;
+  min-width: 0;
+}
+.workspace-list-row b,
+.workspace-list-row small {
+  display: block;
+}
+.workspace-list-row b {
+  overflow: hidden;
+  color: #3e555d;
+  font-size: 9px;
+  text-overflow: ellipsis;
+}
+.workspace-list-row small {
+  margin-top: 4px;
+  color: #8a969a;
+  font-size: 8px;
+  line-height: 1.5;
+}
+@media (max-width: 820px) {
+  .workspace-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 580px) {
+  .official-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .deal-workspace-top {
+    flex-direction: column;
+  }
+  .status-split {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .status-split .btn {
+    margin-left: 0;
+  }
+  .workspace-task {
+    grid-template-columns: 1fr;
+  }
 }
