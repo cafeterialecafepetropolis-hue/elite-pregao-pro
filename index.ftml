@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d0b">
+<title>Elite Pregão PRO | Inteligência em Licitações</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #080d0b;
+  --panel: #101713;
+  --panel2: #151e18;
+  --border: #24352a;
+  --green: #19d68b;
+  --green2: #0eaa6b;
+  --text: #edf5ef;
+  --muted: #84948a;
+  --red: #ff6868;
+  --yellow: #edc66b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+button, input, select { font: inherit; }
+
+button { cursor: pointer; }
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background: #0b110e;
+  border-right: 1px solid var(--border);
+  padding: 25px 16px;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 10px 30px;
+}
+
+.brand-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #20e49a, #087b50);
+  display: grid;
+  place-items: center;
+  color: #06150e;
+  font-weight: 900;
+  font-size: 22px;
+}
+
+.brand-name {
+  font-family: Manrope, sans-serif;
+  font-weight: 800;
+  letter-spacing: -.6px;
+  font-size: 16px;
+}
+
+.brand-name span { color: var(--green); }
+
+.brand-sub {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.menu-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #65766b;
+  padding: 15px 11px 9px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  color: #9eafa3;
+  font-size: 13px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: .2s;
+  border: 1px solid transparent;
+}
+
+.menu-item:hover, .menu-item.active {
+  background: rgba(25,214,139,.09);
+  color: var(--green);
+  border-color: rgba(25,214,139,.12);
+}
+
+.menu-item .ico { width: 19px; text-align: center; }
+
+.sidebar-bottom {
+  border-top: 1px solid var(--border);
+  margin-top: 30px;
+  padding: 20px 10px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #173e2b;
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.user-card strong { font-size: 12px; }
+.user-card small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+
+.main {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  padding: 28px 35px;
+  max-width: 1800px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+  gap: 15px;
+}
+
+.breadcrumb {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.breadcrumb strong { color: var(--text); }
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-label {
+  font-size: 10px;
+  color: var(--yellow);
+  background: rgba(237,198,107,.09);
+  border: 1px solid rgba(237,198,107,.2);
+  padding: 7px 10px;
+  border-radius: 6px;
+}
+
+.icon-button {
+  width: 35px;
+  height: 35px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: white;
+  border-radius: 8px;
+}
+
+h1 {
+  font-family: Manrope, sans-serif;
+  font-size: clamp(24px, 3vw, 32px);
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.green { color: var(--green); }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 23px;
+}
+
+.card {
+  background: linear-gradient(145deg, #121b15, #0d140f);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 17px;
+}
+
+.stat-title { font-size: 11px; color: var(--muted); }
+
+.stat-icon {
+  background: rgba(25,214,139,.1);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.stat-value {
+  font-family: Manrope, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.stat-foot {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 7px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.panel-heading h2 {
+  font-size: 15px;
+  font-family: Manrope, sans-serif;
+}
+
+.panel-heading p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.btn {
+  background: var(--green);
+  color: #06170e;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 15px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.btn:hover { background: #53efad; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--green2);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.field {
+  background: #0b120d;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 7px;
+  padding: 11px;
+  width: 100%;
+  outline: none;
+  font-size: 11px;
+}
+
+.field:focus { border-color: var(--green); }
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 15px 10px;
+  border-bottom: 1px solid #1d2a21;
+  font-size: 11px;
+}
+
+td strong { font-size: 11px; }
+
+.muted { color: var(--muted); }
+
+.tag {
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.tag-green { color: var(--green); background: rgba(25,214,139,.1); }
+.tag-yellow { color: var(--yellow); background: rgba(237,198,107,.1); }
+.tag-red { color: var(--red); background: rgba(255,104,104,.1); }
+
+.grid-two {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+}
+
+.activity {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.activity strong { font-size: 11px; }
+.activity p { color: var(--muted); font-size: 10px; margin-top: 5px; }
+
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.stage {
+  background: #0b120e;
+  border: 1px solid var(--border);
+  padding: 13px;
+  border-radius: 9px;
+  min-height: 180px;
+}
+
+.stage h3 {
+  font-size: 11px;
+  margin-bottom: 14px;
+  color: var(--green);
+}
+
+.deal {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 13px;
+  border-radius: 7px;
+  margin-bottom: 10px;
+}
+
+.deal strong { font-size: 11px; }
+.deal p { font-size: 10px; color: var(--muted); margin-top: 7px; }
+
+.empty {
+  color: var(--muted);
+  font-size: 11px;
+  padding: 25px 5px;
+  text-align: center;
+}
+
+.notice {
+  padding: 13px;
+  background: rgba(237,198,107,.07);
+  border: 1px solid rgba(237,198,107,.18);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--yellow);
+  margin-bottom: 18px;
+}
+
+.page-footer {
+  text-align: center;
+  padding: 25px;
+  font-size: 10px;
+  color: #627267;
+}
+
+.mobile-menu { display: none; }
+
+@media(max-width:1050px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .grid-two { grid-template-columns: 1fr; }
+}
+
+@media(max-width:700px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: .25s;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 20px 15px;
+  }
+  .mobile-menu { display: inline-block; }
+  .topbar { flex-wrap: wrap; }
+  .filters { grid-template-columns: 1fr; }
+  .stats { gap: 9px; }
+  .card { padding: 13px; }
+  .stat-value { font-size: 22px; }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-icon">E</div>
+    <div>
+      <div class="brand-name">ELITE <span>PREGÃO</span></div>
+      <div class="brand-sub">PROFESSIONAL INTELLIGENCE</div>
+    </div>
+  </div>
+
+  <div class="menu-label">VISÃO GERAL</div>
+  <div class="menu-item active" data-page="dashboard"><span class="ico">◫</span> Dashboard</div>
+
+  <div class="menu-label">LICITAÇÕES</div>
+  <div class="menu-item" data-page="oportunidades"><span class="ico">⌕</span> Oportunidades</div>
+  <div class="menu-item" data-page="funil"><span class="ico">▤</span> Funil de licitações</div>
+  <div class="menu-item" data-page="pregao"><span class="ico">◉</span> Sala de pregão</div>
+  <div class="menu-item" data-page="agenda"><span class="ico">▦</span> Agenda e tarefas</div>
+
+  <div class="menu-label">INTELIGÊNCIA</div>
+  <div class="menu-item" data-page="mercado"><span class="ico">◈</span> Inteligência de mercado</div>
+  <div class="menu-item" data-page="precificacao"><span class="ico">◷</span> Precificação</div>
+
+  <div class="menu-label">GESTÃO</div>
+  <div class="menu-item" data-page="documentos"><span class="ico">▧</span> Documentos</div>
+  <div class="menu-item" data-page="empresa"><span class="ico">⌂</span> Minha empresa</div>
+  <div class="menu-item" data-page="antecipagov"><span class="ico">↗</span> AntecipaGov</div>
+
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="avatar">E</div>
+      <div>
+        <strong>Administrador</strong>
+        <small>Ambiente demonstrativo</small>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-button mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div class="breadcrumb">Elite Pregão Pro / <strong id="breadcrumb">Dashboard</strong></div>
+    </div>
+    <div class="top-actions">
+      <span class="demo-label">● AMBIENTE DEMONSTRATIVO</span>
+      <button class="icon-button" title="Notificações">♧</button>
+    </div>
+  </header>
+
+  <section class="section active" id="dashboard">
+    <h1>Painel de <span class="green">inteligência.</span></h1>
+    <p class="subtitle">Visão estratégica da sua operação de licitações.</p>
+
+    <div class="notice">
+      ⚠ Ambiente demonstrativo. Os indicadores abaixo são exemplos visuais e não representam dados oficiais ou operações reais.
+    </div>
+
+    <div class="stats">
+      <div class="card">
+        <div class="stat-top"><span class="stat-title">Oportunidades monitoradas</span><span class="stat-icon">⌕</span></div>
+        <div class="stat-value">128</div>
+        <div class="stat-foot">Exemplo demonstrativo</div>
+      </div>
+      <div class="card">
+        <div class="stat-top"><span class="stat-title">Em andamento</span><span class="stat-icon">▤</span></div>
+        <div class="stat-value">24</div>
+        <div class="stat-foot">Exemplo demonstrativo</div>
+      </div>
+      <div class="card">
+        <div class="stat-top"><span class="stat-title">Tarefas pendentes</span><span class="stat-icon">▦</span></div>
+        <div class="stat-value">08</div>
+        <div class="stat-foot">Exemplo demonstrativo</div>
+      </div>
+      <div class="card">
+        <div class="stat-top"><span class="stat-title">Valor em negociação</span><span class="stat-icon">R$</span></div>
+        <div class="stat-value">R$ 2,4 mi</div>
+        <div class="stat-foot">Exemplo demonstrativo</div>
+      </div>
+    </div>
+
+    <div class="grid-two">
+      <div class="panel">
+        <div class="panel-heading">
+          <div><h2>Oportunidades recentes</h2><p>Exemplos de registros para visualização da interface</p></div>
+          <button class="btn btn-outline" onclick="navigate('oportunidades')">Ver todas</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ÓRGÃO / OBJETO</th><th>VALOR</th><th>SITUAÇÃO</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Prefeitura Municipal</strong><br><span class="muted">Material de escritório</span></td><td>R$ 85.000</td><td><span class="tag tag-green">Em análise</span></td></tr>
+              <tr><td><strong>Secretaria de Educação</strong><br><span class="muted">Equipamentos de informática</span></td><td>R$ 240.000</td><td><span class="tag tag-yellow">Nova</span></td></tr>
+              <tr><td><strong>Hospital Municipal</strong><br><span class="muted">Materiais hospitalares</span></td><td>R$ 120.000</td><td><span class="tag tag-green">Em andamento</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading"><div><h2>Central de atividades</h2><p>Acompanhamento interno demonstrativo</p></div></div>
+        <div class="activity"><span class="activity-dot"></span><div><strong>Revisar documentação</strong><p>Exemplo de tarefa · Prioridade alta</p></div></div>
+        <div class="activity"><span class="activity-dot"></span><div><strong>Conferir proposta</strong><p>Exemplo de tarefa · Em aberto</p></div></div>
+        <div class="activity"><span class="activity-dot"></span><div><strong>Preparar sessão</strong><p>Exemplo de tarefa · Planejada</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="oportunidades">
+    <h1>Central de <span class="green">oportunidades.</span></h1>
+    <p class="subtitle">Pesquisa e organização de contratações públicas.</p>
+    <div class="notice">A integração com fontes oficiais ainda não foi ativada. Esta tela não realiza consultas reais.</div>
+    <div class="panel">
+      <div class="panel-heading"><div><h2>Pesquisar oportunidades</h2><p>Prepare os critérios para nossa integração oficial.</p></div></div>
+      <div class="filters">
+        <input class="field" id="search" placeholder="Palavra-chave, objeto ou órgão...">
+        <select class="field" id="modality"><option value="">Todas as modalidades</option><option>Pregão Eletrônico</option><option>Concorrência</option><option>Dispensa</option></select>
+        <select class="field" id="state"><option value="">Todos os estados</option><option>RJ</option><option>SP</option><option>MG</option></select>
+        <button class="btn" onclick="filterOpportunities()">Pesquisar</button>
+      </div>
+      <div class="table-wrap">
+        <table id="opportunityTable">
+          <thead><tr><th>ÓRGÃO / OBJETO</th><th>MODALIDADE</th><th>UF</th><th>VALOR</th><th>STATUS</th></tr></thead>
+          <tbody id="opportunityRows">
+            <tr><td><strong>Prefeitura Municipal</strong><br><span class="muted">Material de escritório</span></td><td>Pregão Eletrônico</td><td>RJ</td><td>R$ 85.000,00</td><td><span class="tag tag-green">Exemplo</span></td></tr>
+            <tr><td><strong>Secretaria de Educação</strong><br><span class="muted">Equipamentos de informática</span></td><td>Concorrência</td><td>SP</td><td>R$ 240.000,00</td><td><span class="tag tag-yellow">Exemplo</span></td></tr>
+            <tr><td><strong>Hospital Municipal</strong><br><span class="muted">Materiais hospitalares</span></td><td>Pregão Eletrônico</td><td>MG</td><td>R$ 120.000,00</td><td><span class="tag tag-green">Exemplo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" id="filterCount" style="font-size:10px;margin-top:14px">3 registros demonstrativos.</p>
+    </div>
+  </section>
+
+  <section class="section" id="funil">
+    <h1>Funil de <span class="green">licitações.</span></h1>
+    <p class="subtitle">Organize cada oportunidade por etapa do processo.</p>
+    <div class="notice">Os cartões abaixo são exemplos. Nenhuma oportunidade foi registrada de verdade.</div>
+    <div class="pipeline">
+      <div class="stage"><h3>01 · Oportunidade</h3><div class="deal"><strong>Material de escritório</strong><p>Prefeitura Municipal</p><p>R$ 85.000</p></div></div>
+      <div class="stage"><h3>02 · Análise do edital</h3><div class="deal"><strong>Equipamentos de informática</strong><p>Secretaria de Educação</p><p>R$ 240.000</p></div></div>
+      <div class="stage"><h3>03 · Documentação</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+      <div class="stage"><h3>04 · Proposta</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+      <div class="stage"><h3>05 · Disputa</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+      <div class="stage"><h3>06 · Habilitação</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+      <div class="stage"><h3>07 · Ganho</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+      <div class="stage"><h3>08 · Perdido</h3><div class="empty">Nenhum exemplo nesta etapa.</div></div>
+    </div>
+  </section>
+
+  <section class="section" id="pregao">
+    <h1>Sala de <span class="green">pregão.</span></h1>
+    <p class="subtitle">Ambiente interno para acompanhamento e registro de sessões.</p>
+    <div class="notice">Modo manual. Não existe conexão em tempo real com portais nesta versão.</div>
+    <div class="panel"><h2 style="font-size:14px">Acompanhamento de sessões</h2><div class="empty">Nenhuma sessão cadastrada. As informações serão registradas após a implementação do módulo.</div></div>
+  </section>
+
+  <section class="section" id="agenda">
+    <h1>Agenda e <span class="green">tarefas.</span></h1>
+    <p class="subtitle">Controle de prazos, sessões e atividades da sua empresa.</p>
+    <div class="panel"><h2 style="font-size:14px">Calendário operacional</h2><div class="empty">Sua agenda será disponibilizada após a implementação do banco de dados.</div></div>
+  </section>
+
+  <section class="section" id="mercado">
+    <h1>Inteligência de <span class="green">mercado.</span></h1>
+    <p class="subtitle">Pesquisa de materiais, serviços e histórico de preços.</p>
+    <div class="notice">Integração CATMAT/CATSER e consulta de preços oficiais ainda não ativadas.</div>
+    <div class="panel"><h2 style="font-size:14px">Catálogos públicos</h2><div class="empty">A navegação dos catálogos será implementada com base nas fontes oficiais.</div></div>
+  </section>
+
+  <section class="section" id="precificacao">
+    <h1>Inteligência de <span class="green">precificação.</span></h1>
+    <p class="subtitle">Calcule o preço mínimo de venda considerando custos, encargos e margem.</p>
+    <div class="panel">
+      <div class="panel-heading"><div><h2>Calculadora de preço-piso</h2><p>Simulação local, sem salvar dados.</p></div></div>
+      <div class="filters">
+        <input class="field" type="number" id="cost" placeholder="Custo total (R$)" min="0" step=".01">
+        <input class="field" type="number" id="fees" placeholder="Taxas (%)" min="0" step=".01">
+        <input class="field" type="number" id="margin" placeholder="Margem mínima (%)" min="0" step=".01">
+        <button class="btn" onclick="calculatePrice()">Calcular</button>
+      </div>
+      <div id="priceResult" class="empty">Informe os valores para calcular o preço mínimo.</div>
+    </div>
+  </section>
+
+  <section class="section" id="documentos">
+    <h1>Central de <span class="green">documentos.</span></h1>
+    <p class="subtitle">Organização de documentos empresariais e habilitação.</p>
+    <div class="notice">O armazenamento privado ainda será configurado. Não envie documentos nesta versão.</div>
+    <div class="panel"><h2 style="font-size:14px">Documentação empresarial</h2><div class="empty">Nenhum documento armazenado.</div></div>
+  </section>
+
+  <section class="section" id="empresa">
+    <h1>Minha <span class="green">empresa.</span></h1>
+    <p class="subtitle">Dados cadastrais e configurações da organização.</p>
+    <div class="panel"><h2 style="font-size:14px">Cadastro empresarial</h2><div class="empty">O cadastro será disponibilizado após a implementação da autenticação.</div></div>
+  </section>
+
+  <section class="section" id="antecipagov">
+    <h1><span class="green">AntecipaGov.</span></h1>
+    <p class="subtitle">Orientação e acompanhamento de operações relacionadas ao programa.</p>
+    <div class="notice">Módulo informativo. Nenhuma consulta de elegibilidade ou operação financeira está conectada.</div>
+    <div class="panel"><h2 style="font-size:14px">Central de orientação</h2><div class="empty">A integração dependerá de documentação, autorização e recursos oficiais disponíveis.</div></div>
+  </section>
+
+  <footer class="page-footer">
+    ELITE PREGÃO PRO · INTELIGÊNCIA EM LICITAÇÕES PÚBLICAS<br>
+    <span style="margin-top:6px;display:inline-block">Versão inicial de interface · Ambiente demonstrativo</span>
+  </footer>
+</main>
+</div>
+
+<script>
+const titles = {
+ dashboard:"Dashboard",
+ oportunidades:"Oportunidades",
+ funil:"Funil de licitações",
+ pregao:"Sala de pregão",
+ agenda:"Agenda e tarefas",
+ mercado:"Inteligência de mercado",
+ precificacao:"Precificação",
+ documentos:"Documentos",
+ empresa:"Minha empresa",
+ antecipagov:"AntecipaGov"
+};
+
+function navigate(page) {
+ document.querySelectorAll(".section").forEach(el=>el.classList.remove("active"));
+ document.querySelectorAll(".menu-item").forEach(el=>el.classList.remove("active"));
+ const section=document.getElementById(page);
+ if(!section) return;
+ section.classList.add("active");
+ document.querySelector(`[data-page="${page}"]`)?.classList.add("active");
+ document.getElementById("breadcrumb").textContent=titles[page];
+ document.getElementById("sidebar").classList.remove("open");
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll(".menu-item").forEach(item=>{
+ item.addEventListener("click",()=>navigate(item.dataset.page));
+});
+
+const opportunities=[
+ {org:"Prefeitura Municipal",object:"Material de escritório",modality:"Pregão Eletrônico",state:"RJ",value:"R$ 85.000,00"},
+ {org:"Secretaria de Educação",object:"Equipamentos de informática",modality:"Concorrência",state:"SP",value:"R$ 240.000,00"},
+ {org:"Hospital Municipal",object:"Materiais hospitalares",modality:"Pregão Eletrônico",state:"MG",value:"R$ 120.000,00"}
+];
+
+function filterOpportunities(){
+ const term=document.getElementById("search").value.toLowerCase();
+ const modality=document.getElementById("modality").value;
+ const state=document.getElementById("state").value;
+
+ const results=opportunities.filter(o=>
+  (o.org+" "+o.object).toLowerCase().includes(term) &&
+  (!modality||o.modality===modality) &&
+  (!state||o.state===state)
+ );
+
+ document.getElementById("opportunityRows").innerHTML=results.map(o=>`
+ <tr>
+  <td><strong>${o.org}</strong><br><span class="muted">${o.object}</span></td>
+  <td>${o.modality}</td><td>${o.state}</td><td>${o.value}</td>
+  <td><span class="tag tag-yellow">Demonstrativo</span></td>
+ </tr>`).join("");
+
+ if(!results.length){
+  document.getElementById("opportunityRows").innerHTML=
+  '<tr><td colspan="5" class="empty">Nenhum registro demonstrativo encontrado.</td></tr>';
+ }
+
+ document.getElementById("filterCount").textContent=
+ results.length+" registros demonstrativos exibidos.";
+}
+
+function calculatePrice(){
+ const cost=Number(document.getElementById("cost").value);
+ const fees=Number(document.getElementById("fees").value);
+ const margin=Number(document.getElementById("margin").value);
+ const result=document.getElementById("priceResult");
+
+ if(!Number.isFinite(cost)||cost<=0||!Number.isFinite(fees)||
+ !Number.isFinite(margin)||fees<0||margin<0){
+  result.textContent="Informe valores válidos. O custo deve ser maior que zero.";
+  return;
+ }
+
+ const denominator=1-(fees+margin)/100;
+
+ if(denominator<=0){
+  result.textContent="Taxas e margem somam 100% ou mais. Não é possível calcular.";
+  return;
+ }
+
+ const price=Math.ceil((cost/denominator)*100)/100;
+
+ result.innerHTML=`
+ <div style="color:#84948a;font-size:11px">PREÇO MÍNIMO SIMULADO</div>
+ <div style="font-size:30px;font-weight:800;color:#19d68b;margin:10px">
+ ${price.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+ </div>
+ <div style="font-size:10px;color:#84948a">
+ Cálculo demonstrativo. Confirme tributos, custos e condições reais antes de apresentar uma proposta.
+ </div>`;
+}
+</script>
+</body>
+</html>
