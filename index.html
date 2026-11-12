@@ -3,283 +3,369 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#102c35">
-<title>Elite Pregão Pro | Inteligência em Licitações</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elite Pregão Pro | Licitações</title>
 <style>
-:root{
- --navy:#102c35;--navy2:#173e49;--green:#19a879;
- --green2:#0e8961;--bg:#f3f6f7;--white:#fff;
- --text:#24353c;--muted:#7b8b91;--border:#e3e9eb;
- --red:#d9534f;--orange:#df963b;--blue:#3b82b8;
-}
+:root{--navy:#102c35;--navy2:#173e49;--green:#16a879;--bg:#f3f6f7;--line:#e2e9eb;--muted:#75868c}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);font-family:Inter,Arial,sans-serif;color:var(--text)}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.app{display:flex;min-height:100vh}
-.sidebar{width:255px;background:var(--navy);color:white;padding:22px 15px;position:fixed;inset:0 auto 0 0;overflow-y:auto;z-index:10}
-.brand{display:flex;align-items:center;gap:11px;padding:5px 8px 25px;border-bottom:1px solid #ffffff20}
-.logo{height:42px;width:42px;border-radius:12px;background:var(--green);display:grid;place-items:center;font-weight:900;font-size:21px}
-.brand strong{font-size:16px;display:block}
-.brand small{color:#a8c1c5;font-size:10px;letter-spacing:1px}
-.navlabel{font-size:10px;color:#819ba2;font-weight:bold;letter-spacing:1.5px;padding:23px 10px 8px}
-.nav button{width:100%;border:0;background:none;color:#c1d0d3;text-align:left;padding:12px 13px;border-radius:8px;margin:2px 0;font-size:13px;display:flex;gap:12px;align-items:center}
-.nav button:hover,.nav button.active{background:#ffffff17;color:white}
-.nav button.active{border-left:3px solid #28c48c}
-.nav .ico{width:20px;text-align:center;font-size:16px}
-.sidebar-foot{border-top:1px solid #ffffff20;margin-top:25px;padding:17px 8px;color:#a8c1c5;font-size:11px}
-.main{margin-left:255px;width:calc(100% - 255px)}
-.topbar{height:70px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:5}
-.top-title{font-weight:700;font-size:14px}
-.top-right{display:flex;align-items:center;gap:15px}
-.status{font-size:11px;color:var(--green);background:#e7f7f0;padding:8px 12px;border-radius:30px}
-.avatar{background:var(--navy);color:white;border-radius:50%;width:35px;height:35px;display:grid;place-items:center;font-size:12px;font-weight:bold}
-.content{padding:30px;max-width:1600px;margin:auto}
-.pagehead{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}
-h1{font-size:25px;margin:0 0 7px;color:var(--navy)}
-.subtitle{color:var(--muted);font-size:13px}
-.btn{border:0;background:var(--green);color:white;padding:11px 16px;border-radius:7px;font-size:12px;font-weight:bold}
-.btn:hover{background:var(--green2)}
-.btn.secondary{background:white;color:var(--navy);border:1px solid var(--border)}
-.btn.dark{background:var(--navy)}
-.btn.danger{background:var(--red)}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}
-.card{background:white;border:1px solid var(--border);border-radius:11px;padding:20px;box-shadow:0 2px 8px #102c3507}
-.metric-label{font-size:12px;color:var(--muted);margin-bottom:12px}
-.metric{font-size:27px;font-weight:800;color:var(--navy)}
-.metric-note{font-size:11px;color:var(--green);margin-top:8px}
-.panel{background:white;border:1px solid var(--border);border-radius:11px;padding:21px;margin-bottom:20px}
-.panel-title{font-size:15px;font-weight:750;color:var(--navy);margin-bottom:17px}
-.two{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#25383e}
+button,input,select{font:inherit}
+.layout{min-height:100vh}
+.sidebar{position:fixed;inset:0 auto 0 0;width:245px;background:var(--navy);color:white;padding:22px 14px}
+.brand{display:flex;align-items:center;gap:12px;padding:8px 5px 24px;border-bottom:1px solid #ffffff25}
+.logo{background:var(--green);padding:12px;border-radius:10px;font-size:20px;font-weight:bold}
+.brand strong{font-size:15px}
+.brand small{display:block;color:#a9c1c5;font-size:10px;margin-top:5px}
+.navtitle{font-size:10px;color:#91a9ad;margin:25px 10px 10px;letter-spacing:1px}
+.nav button{display:block;width:100%;padding:13px 12px;border:0;border-radius:7px;background:none;color:#d5e0e2;text-align:left;font-size:13px;margin:3px 0}
+.nav button.active,.nav button:hover{background:#ffffff18;border-left:3px solid var(--green)}
+.main{margin-left:245px}
+.top{height:68px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+.top strong{font-size:13px}
+.online{font-size:11px;color:#159568;background:#e6f7ef;padding:9px 13px;border-radius:30px}
+.content{padding:28px;max-width:1500px;margin:auto}
+h1{font-size:25px;color:var(--navy);margin:0 0 7px}
+.subtitle{font-size:13px;color:var(--muted);line-height:1.5}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:15px}
+.panel{background:white;border:1px solid var(--line);border-radius:11px;padding:20px;margin-bottom:18px}
+.panel h2{font-size:15px;color:var(--navy);margin:0 0 17px}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:13px}
+.field label{display:block;font-size:11px;font-weight:bold;color:#61747a;margin-bottom:7px}
+.field input,.field select{width:100%;height:41px;border:1px solid var(--line);border-radius:7px;padding:0 10px;background:white;font-size:12px;color:#33464b}
+.btn{background:var(--green);border:0;border-radius:7px;color:white;padding:12px 18px;font-size:12px;font-weight:bold;cursor:pointer}
+.btn:hover{background:#10845f}
+.btn.secondary{background:white;color:var(--navy);border:1px solid var(--line)}
+.actions{display:flex;gap:9px;align-items:end;flex-wrap:wrap;margin-top:17px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:17px}
+.tab{background:#f1f5f5;border:1px solid var(--line);border-radius:7px;padding:10px 14px;font-size:12px;cursor:pointer}
+.tab.active{background:var(--navy);color:white}
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin:15px 0}
+.stat{background:#f5f8f8;padding:13px 17px;border-radius:8px;min-width:150px}
+.stat small{display:block;color:var(--muted);font-size:10px}
+.stat strong{display:block;color:var(--navy);font-size:20px;margin-top:5px}
 .tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:650px}
-th{text-align:left;background:#f7f9fa;color:#718188;font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:13px}
-td{padding:14px 13px;border-bottom:1px solid var(--border);font-size:12px}
-tr:last-child td{border-bottom:0}
-.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf3f4;color:#46616a;font-size:10px;font-weight:bold}
-.pill.green{background:#e4f6ed;color:#168458}
-.pill.orange{background:#fff2df;color:#b8751b}
-.pill.red{background:#ffebeb;color:#bd4545}
-.pill.blue{background:#e8f1fc;color:#3976ae}
-input,select,textarea{border:1px solid var(--border);border-radius:7px;padding:11px;background:white;color:var(--text);width:100%;font-size:12px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--green)}
-label{font-size:11px;font-weight:700;color:#63757c;display:block;margin:13px 0 6px}
-.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.searchbar{display:flex;gap:10px;margin-bottom:15px}
-.searchbar input{max-width:350px}
-.pipeline{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:12px;overflow-x:auto}
-.stage{background:#f3f6f7;border-radius:9px;padding:12px;min-height:200px}
-.stagehead{font-size:11px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;justify-content:space-between}
-.opcard{background:white;border:1px solid var(--border);padding:13px;border-radius:8px;margin-bottom:9px}
-.opcard strong{font-size:12px;display:block;margin-bottom:8px}
-.opcard small{color:var(--muted);font-size:10px}
-.bar{height:8px;background:#edf1f2;border-radius:10px;overflow:hidden;margin:10px 0}
-.bar span{display:block;height:100%;background:var(--green);border-radius:10px}
-.empty{padding:30px;text-align:center;color:var(--muted);font-size:12px}
-.notice{padding:13px;background:#edf7f4;border-left:3px solid var(--green);font-size:12px;border-radius:5px;margin-bottom:15px}
-.result{font-size:22px;font-weight:800;color:var(--green);margin-top:12px}
-.mobilemenu{display:none;border:0;background:none;font-size:22px}
-.modalbg{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:30;padding:15px}
-.modal{background:white;border-radius:12px;padding:25px;width:min(500px,100%);max-height:90vh;overflow:auto}
-.modal h2{font-size:18px;color:var(--navy);margin-top:0}
-.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:white;padding:14px 20px;border-radius:8px;display:none;z-index:50;font-size:12px}
-.footer{text-align:center;color:#9aa7aa;font-size:10px;padding:20px}
-@media(max-width:950px){
- .sidebar{transform:translateX(-100%);transition:.2s}
- .sidebar.open{transform:translateX(0)}
- .main{margin-left:0;width:100%}
- .mobilemenu{display:block}
- .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .two{grid-template-columns:1fr}
- .content{padding:20px 14px}
- .topbar{padding:0 15px}
-}
-@media(max-width:550px){
- .grid{grid-template-columns:1fr 1fr;gap:9px}
- .card{padding:14px}
- .metric{font-size:21px}
- .pagehead{align-items:flex-start;flex-direction:column}
- .formgrid{grid-template-columns:1fr}
-}
+table{width:100%;border-collapse:collapse;min-width:850px}
+th{text-align:left;background:#f6f8f9;color:#718188;padding:13px 10px;font-size:10px}
+td{padding:14px 10px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:top}
+td strong{color:var(--navy)}
+.muted{color:var(--muted);font-size:10px;display:block;margin-top:5px}
+.tag{display:inline-block;background:#e5f6ed;color:#14865b;padding:5px 8px;border-radius:20px;font-size:10px}
+.tag.blue{background:#e9f1fb;color:#3975a9}
+.link{color:#128c68;text-decoration:none;font-weight:bold}
+.link:hover{text-decoration:underline}
+.status{padding:17px;background:#f4f7f7;border-radius:8px;color:#63777d;font-size:12px;line-height:1.6}
+.error{background:#fff0ef;color:#ae3d37}
+.pagination{display:flex;justify-content:space-between;align-items:center;margin-top:17px;font-size:12px;color:var(--muted)}
+.pagination button{padding:9px 13px;border:1px solid var(--line);background:white;border-radius:6px;cursor:pointer}
+.pagination button:disabled{opacity:.4;cursor:not-allowed}
+.footer{text-align:center;color:#98a5a9;font-size:10px;padding:25px}
+@media(max-width:900px){.sidebar{width:190px}.main{margin-left:190px}.filters{grid-template-columns:repeat(2,1fr)}.content{padding:17px}}
+@media(max-width:600px){.sidebar{position:relative;width:100%;height:auto}.nav{display:flex;flex-wrap:wrap}.navtitle{width:100%;margin:12px 5px 3px}.nav button{width:auto}.main{margin:0}.top{padding:0 15px}.content{padding:14px}.head{align-items:flex-start;flex-direction:column}.filters{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="app">
-<aside class="sidebar" id="sidebar">
- <div class="brand">
-  <div class="logo">EP</div>
-  <div><strong>ELITE PREGÃO PRO</strong><small>INTELIGÊNCIA EM LICITAÇÕES</small></div>
- </div>
+<div class="layout">
+<aside class="sidebar">
+ <div class="brand"><div class="logo">EP</div><div><strong>ELITE PREGÃO PRO</strong><small>INTELIGÊNCIA EM LICITAÇÕES</small></div></div>
  <div class="nav">
-  <div class="navlabel">PRINCIPAL</div>
-  <button class="active" data-page="dashboard"><span class="ico">▦</span>Visão geral</button>
-  <button data-page="oportunidades"><span class="ico">⌕</span>Oportunidades</button>
-  <button data-page="funil"><span class="ico">◫</span>Funil de licitações</button>
-  <button data-page="agenda"><span class="ico">▣</span>Agenda</button>
-  <div class="navlabel">INTELIGÊNCIA</div>
-  <button data-page="mercado"><span class="ico">◈</span>Mercado e preços</button>
-  <button data-page="precificacao"><span class="ico">▤</span>Precificação</button>
-  <button data-page="analise"><span class="ico">✧</span>Análise de edital</button>
-  <div class="navlabel">OPERAÇÃO</div>
-  <button data-page="documentos"><span class="ico">▧</span>Documentos</button>
-  <button data-page="pregao"><span class="ico">⚖</span>Sala de pregão</button>
-  <button data-page="antecipa"><span class="ico">↗</span>AntecipaGov</button>
-  <div class="navlabel">ADMINISTRAÇÃO</div>
-  <button data-page="empresa"><span class="ico">▣</span>Minha empresa</button>
+  <div class="navtitle">PRINCIPAL</div>
+  <button onclick="showInfo('Dashboard')">▦ Visão geral</button>
+  <button class="active">⌕ Oportunidades</button>
+  <button onclick="showInfo('Funil de licitações')">◫ Funil de licitações</button>
+  <button onclick="showInfo('Agenda')">▣ Agenda</button>
+  <div class="navtitle">INTELIGÊNCIA</div>
+  <button onclick="showInfo('Mercado e preços')">◈ Mercado e preços</button>
+  <button onclick="showInfo('Precificação')">▤ Precificação</button>
+  <button onclick="showInfo('Análise de edital')">✧ Análise de edital</button>
+  <div class="navtitle">OPERAÇÃO</div>
+  <button onclick="showInfo('Documentos')">▧ Documentos</button>
+  <button onclick="showInfo('Sala de pregão')">⚖ Sala de pregão</button>
+  <button onclick="showInfo('AntecipaGov')">↗ AntecipaGov</button>
  </div>
- <div class="sidebar-foot">ELITE PREGÃO PRO<br>Versão demonstrativa 1.0</div>
 </aside>
+
 <main class="main">
-<header class="topbar">
- <div style="display:flex;align-items:center;gap:12px">
-  <button class="mobilemenu" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-  <div class="top-title">CENTRAL DE INTELIGÊNCIA</div>
+<header class="top"><strong>CENTRAL DE INTELIGÊNCIA</strong><span class="online">● Conexão com PNCP disponível</span></header>
+<div class="content">
+ <div class="head">
+  <div><h1>Oportunidades</h1><div class="subtitle">Pesquise contratações públicas reais publicadas no Portal Nacional de Contratações Públicas.</div></div>
+  <a class="link" href="https://pncp.gov.br/" target="_blank">Portal oficial PNCP ↗</a>
  </div>
- <div class="top-right"><span class="status">● Sistema local ativo</span><div class="avatar">EP</div></div>
-</header>
-<div class="content" id="content"></div>
-<div class="footer">ELITE PREGÃO PRO · Plataforma de inteligência e gestão de licitações públicas</div>
+
+ <div class="panel">
+  <div class="tabs">
+   <button class="tab active" id="tabPublicadas" onclick="setMode('publicadas')">Publicadas no período</button>
+   <button class="tab" id="tabAbertas" onclick="setMode('abertas')">Recebendo propostas</button>
+  </div>
+
+  <h2>Filtros de pesquisa</h2>
+  <div class="filters">
+   <div class="field"><label>Data inicial da publicação</label><input id="dataInicial" type="date"></div>
+   <div class="field"><label>Data final da publicação</label><input id="dataFinal" type="date"></div>
+   <div class="field"><label>Modalidade</label>
+    <select id="modalidade">
+     <option value="6">Pregão eletrônico</option>
+     <option value="4">Concorrência eletrônica</option>
+     <option value="8">Dispensa de licitação</option>
+     <option value="9">Inexigibilidade</option>
+     <option value="5">Concorrência presencial</option>
+     <option value="7">Pregão presencial</option>
+     <option value="1">Leilão eletrônico</option>
+     <option value="2">Diálogo competitivo</option>
+     <option value="3">Concurso</option>
+     <option value="13">Credenciamento</option>
+    </select>
+   </div>
+   <div class="field"><label>Estado</label>
+    <select id="uf">
+     <option value="">Todos os estados</option>
+     <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+     <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+     <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+     <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+     <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+     <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+     <option>SP</option><option>SE</option><option>TO</option>
+    </select>
+   </div>
+   <div class="field"><label>Palavra-chave do objeto</label><input id="palavra" placeholder="Ex.: material de escritório"></div>
+   <div class="field"><label>Valor mínimo (R$)</label><input id="valorMin" type="number" min="0" placeholder="0,00"></div>
+   <div class="field"><label>Valor máximo (R$)</label><input id="valorMax" type="number" min="0" placeholder="Sem limite"></div>
+   <div class="field"><label>Registros por página</label><select id="tamanho"><option>10</option><option selected>20</option><option>50</option></select></div>
+  </div>
+  <div class="actions">
+   <button class="btn" id="searchButton" onclick="search()">PESQUISAR LICITAÇÕES</button>
+   <button class="btn secondary" onclick="resetFilters()">Limpar filtros</button>
+   <button class="btn secondary" onclick="quickDate(0)">Hoje</button>
+   <button class="btn secondary" onclick="quickDate(7)">Últimos 7 dias</button>
+   <button class="btn secondary" onclick="quickDate(30)">Últimos 30 dias</button>
+  </div>
+ </div>
+
+ <div class="panel">
+  <h2>Resultados da pesquisa</h2>
+  <div class="summary">
+   <div class="stat"><small>Registros nesta página</small><strong id="count">0</strong></div>
+   <div class="stat"><small>Página atual</small><strong id="pageNumber">1</strong></div>
+   <div class="stat"><small>Fonte</small><strong style="font-size:14px">PNCP oficial</strong></div>
+  </div>
+  <div id="message" class="status">Selecione os filtros e clique em Pesquisar Licitações. Os resultados serão consultados diretamente na API pública do PNCP.</div>
+  <div class="tablewrap" style="margin-top:15px">
+   <table>
+    <thead><tr><th>OBJETO / PROCESSO</th><th>ÓRGÃO</th><th>UF / MUNICÍPIO</th><th>MODALIDADE</th><th>VALOR ESTIMADO</th><th>PUBLICAÇÃO</th><th>PROPOSTAS</th><th>EDITAL</th></tr></thead>
+    <tbody id="results"><tr><td colspan="8" style="text-align:center;color:#829197;padding:30px">Aguardando pesquisa.</td></tr></tbody>
+   </table>
+  </div>
+  <div class="pagination">
+   <span id="pageInfo">Nenhuma consulta realizada.</span>
+   <div><button id="prev" onclick="changePage(-1)" disabled>← Anterior</button> <button id="next" onclick="changePage(1)" disabled>Próxima →</button></div>
+  </div>
+ </div>
+ <div class="footer">ELITE PREGÃO PRO · Dados consultados no PNCP · Consulte sempre o edital oficial</div>
+</div>
 </main>
 </div>
-<div class="modalbg" id="modalbg">
- <div class="modal" id="modal"></div>
-</div>
-<div class="toast" id="toast"></div>
+
 <script>
-const $=s=>document.querySelector(s);
-const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const today=()=>new Date().toISOString().slice(0,10);
-const load=(k,d)=>{try{return JSON.parse(localStorage.getItem('ep_'+k))??d}catch{return d}};
-const save=(k,v)=>localStorage.setItem('ep_'+k,JSON.stringify(v));
-let opportunities=load('opportunities',[
-{id:1,title:'Aquisição de materiais de escritório',agency:'Prefeitura Municipal',number:'PE 012/2026',value:45000,stage:'Oportunidade',date:'2026-12-10',status:'Em análise'},
-{id:2,title:'Fornecimento de equipamentos de informática',agency:'Secretaria de Educação',number:'PE 025/2026',value:120000,stage:'Análise do edital',date:'2026-12-15',status:'Em análise'},
-{id:3,title:'Materiais de limpeza',agency:'Hospital Municipal',number:'PE 031/2026',value:28000,stage:'Documentação',date:'2026-12-18',status:'Em andamento'}
-]);
-let tasks=load('tasks',[]);
-let docs=load('docs',[]);
-let company=load('company',{name:'Minha empresa',cnpj:'',email:'',phone:'',address:''});
-let page='dashboard';
-const stages=['Oportunidade','Análise do edital','Documentação','Proposta','Disputa','Habilitação','Ganho','Perdido'];
-function persist(){save('opportunities',opportunities);save('tasks',tasks);save('docs',docs);save('company',company)}
-function toast(msg){let t=$('#toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
-function heading(title,sub,button=''){return `<div class="pagehead"><div><h1>${title}</h1><div class="subtitle">${sub}</div></div>${button}</div>`}
-function metric(label,value,note){return `<div class="card"><div class="metric-label">${label}</div><div class="metric">${value}</div><div class="metric-note">${note}</div></div>`}
-function go(p){
- page=p;document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
- $('#sidebar').classList.remove('open');render()
+const API='https://pncp.gov.br/api/consulta/v1';
+let mode='publicadas',page=1,totalPages=1,lastParams=null,busy=false;
+
+function localDate(date){
+ const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
+ return `${y}-${m}-${d}`;
 }
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));
-function render(){
- const c=$('#content');
- const total=opportunities.reduce((a,o)=>a+Number(o.value||0),0);
- const active=opportunities.filter(o=>!['Ganho','Perdido'].includes(o.stage));
- if(page==='dashboard'){
- c.innerHTML=heading('Visão geral','Acompanhe os indicadores e a operação da sua empresa.')+
- `<div class="grid">${metric('Oportunidades cadastradas',opportunities.length,'Licitações no seu controle')}${metric('Valor potencial',money(total),'Soma dos valores cadastrados')}${metric('Em andamento',active.length,'Oportunidades não encerradas')}${metric('Tarefas pendentes',tasks.filter(t=>!t.done).length,'Atividades a realizar')}</div>
- <div class="two"><div class="panel"><div class="panel-title">Oportunidades recentes</div>${tableOpp(opportunities.slice(0,5))}</div><div class="panel"><div class="panel-title">Distribuição do funil</div>${stages.map(s=>{let n=opportunities.filter(o=>o.stage===s).length;return `<div style="font-size:11px;margin:12px 0">${s}<b style="float:right">${n}</b></div><div class="bar"><span style="width:${opportunities.length?n/opportunities.length*100:0}%"></span></div>`}).join('')}</div></div>
- <div class="panel"><div class="panel-title">Próximas atividades</div>${taskList(tasks.filter(t=>!t.done).slice(0,5))}</div>`;
+function pncpDate(value){return value.replaceAll('-','')}
+function dateInput(id,value){document.getElementById(id).value=value}
+function quickDate(days){
+ const end=new Date(),start=new Date();
+ start.setDate(start.getDate()-days);
+ dateInput('dataInicial',localDate(start));
+ dateInput('dataFinal',localDate(end));
+}
+function setMode(value){
+ mode=value;
+ document.getElementById('tabPublicadas').classList.toggle('active',mode==='publicadas');
+ document.getElementById('tabAbertas').classList.toggle('active',mode==='abertas');
+ const dates=mode==='publicadas';
+ document.getElementById('dataInicial').disabled=!dates;
+ document.getElementById('dataFinal').disabled=false;
+ document.getElementById('modalidade').disabled=false;
+}
+function resetFilters(){
+ quickDate(0);
+ document.getElementById('modalidade').value='6';
+ document.getElementById('uf').value='';
+ document.getElementById('palavra').value='';
+ document.getElementById('valorMin').value='';
+ document.getElementById('valorMax').value='';
+ document.getElementById('tamanho').value='20';
+ setMode('publicadas');
+ document.getElementById('results').innerHTML='<tr><td colspan="8" style="text-align:center">Filtros limpos. Faça uma nova pesquisa.</td></tr>';
+ document.getElementById('message').textContent='Filtros limpos.';
+}
+function msg(text,error=false){
+ const el=document.getElementById('message');
+ el.className='status'+(error?' error':'');
+ el.textContent=text;
+}
+function getArray(data){
+ if(Array.isArray(data))return data;
+ for(const key of ['data','content','items','resultado','contratacoes']){
+  if(Array.isArray(data?.[key]))return data[key];
  }
- if(page==='oportunidades'){
- c.innerHTML=heading('Oportunidades','Gerencie licitações identificadas e acompanhe seus prazos.',`<button class="btn" onclick="newOpp()">+ Nova oportunidade</button>`)+
- `<div class="panel"><div class="searchbar"><input id="searchOpp" placeholder="Pesquisar objeto, órgão ou número..." oninput="filterOpp()"><select id="stageFilter" onchange="filterOpp()" style="max-width:220px"><option value="">Todas as etapas</option>${stages.map(s=>`<option>${s}</option>`).join('')}</select></div><div id="oppTable">${tableOpp(opportunities)}</div></div>`;
+ return [];
+}
+function val(obj,...keys){
+ for(const key of keys){
+  const v=key.split('.').reduce((a,b)=>a?.[b],obj);
+  if(v!==undefined&&v!==null&&v!=='')return v;
  }
- if(page==='funil'){
- c.innerHTML=heading('Funil de licitações','Acompanhe cada oportunidade desde a descoberta até o encerramento.')+
- `<div class="pipeline">${stages.map(s=>{let list=opportunities.filter(o=>o.stage===s);return `<div class="stage"><div class="stagehead">${s}<span>${list.length}</span></div>${list.map(o=>`<div class="opcard"><strong>${esc(o.title)}</strong><small>${esc(o.number)} · ${money(o.value)}</small><div style="margin-top:10px"><select onchange="moveOpp(${o.id},this.value)">${stages.map(x=>`<option ${x===s?'selected':''}>${x}</option>`).join('')}</select></div></div>`).join('')}</div>`}).join('')}</div>`;
+ return '';
+}
+function formatMoney(v){
+ if(v===''||v===null||v===undefined)return 'Não informado';
+ const n=Number(v);
+ return Number.isFinite(n)?n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'Não informado';
+}
+function formatDate(v){
+ if(!v)return '—';
+ const s=String(v);
+ const match=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(match)return `${match[3]}/${match[2]}/${match[1]}`;
+ const digits=s.replace(/\D/g,'');
+ if(digits.length>=8)return `${digits.slice(6,8)}/${digits.slice(4,6)}/${digits.slice(0,4)}`;
+ return s;
+}
+function escapeHTML(s){
+ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function editalLink(o){
+ const cnpj=val(o,'orgaoEntidade.cnpj','cnpj');
+ const ano=val(o,'anoCompra','ano');
+ const seq=val(o,'sequencialCompra','sequencial');
+ if(cnpj&&ano&&seq)return `https://pncp.gov.br/app/editais/${cnpj}/${ano}/${seq}`;
+ const direct=val(o,'linkSistemaOrigem','linkProcesso');
+ if(direct&&/^https?:\/\//i.test(direct))return direct;
+ return 'https://pncp.gov.br/app/consultas/contratacoes';
+}
+function renderResults(items){
+ const body=document.getElementById('results');
+ if(!items.length){
+  body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:35px;color:#75868c">Nenhuma contratação encontrada com esses filtros.</td></tr>';
+  return;
  }
- if(page==='agenda'){
- c.innerHTML=heading('Agenda','Prazos, tarefas e compromissos da operação.',`<button class="btn" onclick="newTask()">+ Nova tarefa</button>`)+
- `<div class="panel"><div class="panel-title">Todas as atividades</div>${taskList(tasks)}</div>`;
+ body.innerHTML=items.map(o=>{
+  const title=val(o,'objetoCompra','objeto','descricaoObjeto')||'Objeto não informado';
+  const number=val(o,'numeroCompra','numeroProcesso','numeroControlePNCP')||'';
+  const agency=val(o,'orgaoEntidade.razaoSocial','orgaoEntidade.nome','nomeOrgao','razaoSocial')||'Órgão não informado';
+  const uf=val(o,'unidadeOrgao.ufSigla','uf','unidadeOrgao.uf')||'—';
+  const city=val(o,'unidadeOrgao.municipioNome','municipioNome','municipio')||'';
+  const modality=val(o,'modalidadeNome','modalidadeContratacaoNome')||'Consulte o edital';
+  const amount=val(o,'valorTotalEstimado','valorEstimado','valorTotalHomologado');
+  const publication=val(o,'dataPublicacaoPncp','dataPublicacao','dataInclusao');
+  const start=val(o,'dataAberturaProposta','dataInicioProposta');
+  const end=val(o,'dataEncerramentoProposta','dataFimProposta');
+  const link=editalLink(o);
+  return `<tr>
+   <td><strong>${escapeHTML(title)}</strong><span class="muted">${escapeHTML(number)}</span></td>
+   <td>${escapeHTML(agency)}</td>
+   <td>${escapeHTML(uf)}<span class="muted">${escapeHTML(city)}</span></td>
+   <td><span class="tag blue">${escapeHTML(modality)}</span></td>
+   <td>${formatMoney(amount)}</td>
+   <td>${formatDate(publication)}</td>
+   <td>${start||end?`<span class="muted">Início: ${formatDate(start)}</span><span class="muted">Fim: ${formatDate(end)}</span>`:'Consulte o edital'}</td>
+   <td><a class="link" href="${escapeHTML(link)}" target="_blank" rel="noopener">Consultar ↗</a></td>
+  </tr>`;
+ }).join('');
+}
+function filterLocal(items){
+ const keyword=document.getElementById('palavra').value.trim().toLocaleLowerCase('pt-BR');
+ const min=Number(document.getElementById('valorMin').value||0);
+ const max=Number(document.getElementById('valorMax').value||0);
+ return items.filter(o=>{
+  const title=String(val(o,'objetoCompra','objeto','descricaoObjeto')).toLocaleLowerCase('pt-BR');
+  const amount=Number(val(o,'valorTotalEstimado','valorEstimado')||0);
+  return (!keyword||title.includes(keyword))&&(!min||amount>=min)&&(!max||amount<=max);
+ });
+}
+function buildParams(){
+ const uf=document.getElementById('uf').value;
+ const modality=document.getElementById('modalidade').value;
+ const size=document.getElementById('tamanho').value;
+ const p=new URLSearchParams();
+ p.set('pagina',String(page));
+ p.set('tamanhoPagina',size);
+ if(uf)p.set('uf',uf);
+ if(modality)p.set('codigoModalidadeContratacao',modality);
+ if(mode==='publicadas'){
+  const a=document.getElementById('dataInicial').value;
+  const b=document.getElementById('dataFinal').value;
+  if(!a||!b)throw new Error('Informe as datas inicial e final.');
+  if(a>b)throw new Error('A data inicial não pode ser posterior à data final.');
+  p.set('dataInicial',pncpDate(a));
+  p.set('dataFinal',pncpDate(b));
+  return `${API}/contratacoes/publicacao?${p}`;
  }
- if(page==='mercado'){
- c.innerHTML=heading('Mercado e inteligência de preços','Área de referência para pesquisas de mercado.')+
- `<div class="notice">Os dados abaixo são apenas demonstrativos. Para decisões de preço, consulte fontes oficiais e registros verificáveis.</div><div class="grid">${metric('Fontes previstas','PNCP','Contratações públicas')}${metric('Catálogo','CATMAT','Materiais')}${metric('Catálogo','CATSER','Serviços')}${metric('Histórico','Preços','Não equivale a cotação atual')}</div><div class="panel"><div class="panel-title">Pesquisa de mercado</div><label>Termo ou descrição do item</label><input id="marketTerm" placeholder="Ex.: papel A4, computador, serviço de limpeza"><div class="actions"><button class="btn" onclick="toast('Pesquisa externa ainda não conectada. Consulte o PNCP e os catálogos oficiais.')">Pesquisar</button><button class="btn secondary" onclick="window.open('https://pncp.gov.br/','_blank')">Abrir PNCP oficial ↗</button></div></div>`;
+ const end=document.getElementById('dataFinal').value;
+ if(!end)throw new Error('Informe a data final.');
+ p.set('dataFinal',pncpDate(end));
+ return `${API}/contratacoes/proposta?${p}`;
+}
+async function search(){
+ if(busy)return;
+ try{
+  page=1;
+  lastParams=buildParams();
+  await fetchPage();
+ }catch(e){msg(e.message,true)}
+}
+async function fetchPage(){
+ if(busy)return;
+ busy=true;
+ const btn=document.getElementById('searchButton');
+ btn.disabled=true;btn.textContent='CONSULTANDO PNCP...';
+ msg('Consultando a API oficial do PNCP. Aguarde...');
+ document.getElementById('results').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px">Carregando dados reais...</td></tr>';
+ try{
+  const url=new URL(lastParams);
+  url.searchParams.set('pagina',String(page));
+  const response=await fetch(url.toString(),{method:'GET',headers:{'Accept':'application/json'}});
+  if(!response.ok){
+   const detail=await response.text().catch(()=> '');
+   throw new Error(`O PNCP respondeu com HTTP ${response.status}. ${detail.slice(0,180)}`);
+  }
+  const data=await response.json();
+  const items=getArray(data);
+  const filtered=filterLocal(items);
+  totalPages=Number(val(data,'totalPaginas','totalPages')||1);
+  renderResults(filtered);
+  document.getElementById('count').textContent=filtered.length;
+  document.getElementById('pageNumber').textContent=page;
+  document.getElementById('pageInfo').textContent=`Página ${page} de ${totalPages}. Os filtros de palavra-chave e valor são aplicados aos registros desta página.`;
+  document.getElementById('prev').disabled=page<=1;
+  document.getElementById('next').disabled=page>=totalPages;
+  msg(`Consulta concluída. A API do PNCP retornou ${items.length} registro(s) nesta página. Resultados recebidos diretamente da fonte oficial.`);
+ }catch(e){
+  document.getElementById('results').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px">Não foi possível carregar os resultados.</td></tr>';
+  msg(e.message+' Verifique sua conexão e tente novamente. Se persistir, pode haver indisponibilidade ou restrição de acesso da API.',true);
+  document.getElementById('count').textContent='0';
+  document.getElementById('pageInfo').textContent='Consulta não concluída.';
+  document.getElementById('prev').disabled=true;
+  document.getElementById('next').disabled=true;
+ }finally{
+  busy=false;btn.disabled=false;btn.textContent='PESQUISAR LICITAÇÕES';
  }
- if(page==='precificacao'){
- c.innerHTML=heading('Precificação inteligente','Calcule o preço mínimo de venda considerando custos, encargos e margem.')+
- `<div class="panel"><div class="panel-title">Calculadora de preço mínimo</div><div class="formgrid"><div><label>Custo total (R$)</label><input id="cost" type="number" min="0" step=".01" value="1000"></div><div><label>Encargos sobre a venda (%)</label><input id="fees" type="number" min="0" max="99.99" step=".01" value="10"></div><div><label>Margem desejada sobre a venda (%)</label><input id="margin" type="number" min="0" max="99.99" step=".01" value="20"></div></div><div class="actions"><button class="btn" onclick="calculate()">Calcular preço mínimo</button></div><div id="priceResult"></div><div class="notice" style="margin-top:20px">Fórmula: preço mínimo = custo total ÷ (1 − encargos − margem). Informe percentuais em relação ao preço de venda. O cálculo não substitui análise tributária ou contábil.</div></div>`;
- calculate();
- }
- if(page==='analise'){
- c.innerHTML=heading('Análise de edital','Organize a leitura e a conferência de requisitos do instrumento convocatório.')+
- `<div class="notice">A análise automatizada por IA ainda não está conectada. Use este checklist para registrar a revisão humana do edital.</div><div class="panel"><div class="panel-title">Checklist de análise</div>${['Objeto e especificações','Data e horário da sessão','Critério de julgamento','Modo de disputa','Documentação de habilitação','Qualificação técnica','Exigências econômico-financeiras','Prazos de entrega','Local de entrega','Condições de pagamento','Sanções e penalidades','Impugnação e recursos'].map((x,i)=>`<label style="font-weight:500;font-size:12px"><input type="checkbox" style="width:auto;margin-right:8px"> ${x}</label>`).join('')}<label>Observações da análise</label><textarea rows="4" placeholder="Registre riscos, exigências e pontos de atenção..."></textarea><div class="actions"><button class="btn" onclick="toast('Checklist revisado nesta sessão. Salve suas observações externamente.')">Concluir revisão</button></div></div>`;
- }
- if(page==='documentos'){
- c.innerHTML=heading('Central de documentos','Controle demonstrativo de documentos da empresa.',`<button class="btn" onclick="newDoc()">+ Cadastrar documento</button>`)+
- `<div class="notice">Esta versão armazena metadados localmente. Não envie documentos sigilosos: ainda não existe armazenamento privado com controle de acesso.</div><div class="panel"><div class="panel-title">Documentos cadastrados</div>${docs.length?`<div class="tablewrap"><table><thead><tr><th>Documento</th><th>Categoria</th><th>Validade</th><th>Ações</th></tr></thead><tbody>${docs.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.category)}</td><td>${d.date||'Não informada'}</td><td><button class="btn danger" onclick="deleteDoc(${d.id})">Excluir</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhum documento cadastrado.</div>'}</div>`;
- }
- if(page==='pregao'){
- c.innerHTML=heading('Sala de pregão','Painel de apoio para acompanhamento manual da sessão.')+
- `<div class="notice">A sala não está conectada a sistemas de disputa. Não envia lances, não acessa credenciais e não executa ações em nome do fornecedor.</div><div class="panel"><div class="panel-title">Controle manual de disputa</div><div class="formgrid"><div><label>Pregão / processo</label><input id="auction" placeholder="Ex.: PE 012/2026"></div><div><label>Item</label><input id="item" placeholder="Número do item"></div><div><label>Seu lance atual (R$)</label><input id="bid" type="number" step=".01"></div><div><label>Limite mínimo calculado (R$)</label><input id="limit" type="number" step=".01"></div></div><div class="actions"><button class="btn" onclick="checkBid()">Verificar lance</button></div><div id="bidResult"></div></div>`;
- }
- if(page==='antecipa'){
- c.innerHTML=heading('AntecipaGov','Informações para planejamento de antecipação de recebíveis.')+
- `<div class="notice">Este módulo é informativo. Não há integração financeira, consulta de crédito ou contratação de antecipação nesta versão.</div><div class="panel"><div class="panel-title">O que considerar</div><ul style="font-size:13px;line-height:2;color:#52656c"><li>Verifique se o contrato e o recebível são elegíveis.</li><li>Consulte as condições da instituição financeira habilitada.</li><li>Compare custo efetivo, taxas e prazo de liquidação.</li><li>Confirme os dados diretamente nos canais oficiais.</li></ul><button class="btn" onclick="window.open('https://www.gov.br/','_blank')">Consultar portal Gov.br ↗</button></div>`;
- }
- if(page==='empresa'){
- c.innerHTML=heading('Minha empresa','Dados cadastrais e informações do fornecedor.')+
- `<div class="panel"><div class="panel-title">Cadastro empresarial</div><div class="formgrid"><div><label>Razão social / Nome</label><input id="coName" value="${attr(company.name)}"></div><div><label>CNPJ</label><input id="coCnpj" value="${attr(company.cnpj)}" placeholder="00.000.000/0000-00"></div><div><label>E-mail</label><input id="coEmail" value="${attr(company.email)}"></div><div><label>Telefone</label><input id="coPhone" value="${attr(company.phone)}"></div></div><label>Endereço</label><input id="coAddress" value="${attr(company.address)}"><div class="actions"><button class="btn" onclick="saveCompany()">Salvar cadastro</button></div></div><div class="panel"><div class="panel-title">Dados e privacidade</div><p style="font-size:12px;color:#718188;line-height:1.7">As informações desta demonstração ficam no armazenamento local deste navegador. Não existe login, sincronização entre dispositivos ou isolamento seguro entre empresas.</p><button class="btn secondary" onclick="exportData()">Exportar meus dados (JSON)</button></div>`;
- }
 }
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function attr(s){return esc(s).replace(/`/g,'&#96;')}
-function tableOpp(list){
- if(!list.length)return '<div class="empty">Nenhuma oportunidade cadastrada.</div>';
- return `<div class="tablewrap"><table><thead><tr><th>Objeto</th><th>Órgão</th><th>Processo</th><th>Valor estimado</th><th>Etapa</th><th>Prazo</th><th></th></tr></thead><tbody>${list.map(o=>`<tr><td><b>${esc(o.title)}</b></td><td>${esc(o.agency)}</td><td>${esc(o.number)}</td><td>${money(o.value)}</td><td><span class="pill ${o.stage==='Ganho'?'green':o.stage==='Perdido'?'red':'blue'}">${esc(o.stage)}</span></td><td>${o.date||'—'}</td><td><button class="btn secondary" onclick="editOpp(${o.id})">Editar</button></td></tr>`).join('')}</tbody></table></div>`;
+function changePage(delta){
+ const next=page+delta;
+ if(next<1||next>totalPages||busy)return;
+ page=next;fetchPage();
 }
-function filterOpp(){
- let q=$('#searchOpp').value.toLowerCase(),s=$('#stageFilter').value;
- $('#oppTable').innerHTML=tableOpp(opportunities.filter(o=>(o.title+' '+o.agency+' '+o.number).toLowerCase().includes(q)&&(!s||o.stage===s)));
+function showInfo(name){
+ alert(name+' ainda está em desenvolvimento nesta versão. O módulo de Oportunidades é a primeira integração real com o PNCP.');
 }
-function newOpp(o=null){
- const edit=!!o;
- showModal(`<h2>${edit?'Editar':'Nova'} oportunidade</h2><form id="oppForm"><label>Objeto</label><input name="title" required value="${attr(o?.title||'')}"><label>Órgão</label><input name="agency" required value="${attr(o?.agency||'')}"><div class="formgrid"><div><label>Número do processo</label><input name="number" value="${attr(o?.number||'')}"></div><div><label>Valor estimado (R$)</label><input name="value" type="number" step=".01" value="${o?.value||0}"></div><div><label>Prazo / Sessão</label><input name="date" type="date" value="${o?.date||''}"></div><div><label>Etapa</label><select name="stage">${stages.map(s=>`<option ${o?.stage===s?'selected':''}>${s}</option>`).join('')}</select></div></div><div class="actions"><button class="btn">Salvar oportunidade</button><button type="button" class="btn secondary" onclick="closeModal()">Cancelar</button></div></form>`);
- $('#oppForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target),v=Object.fromEntries(f);v.id=o?.id||Date.now();v.value=Number(v.value);if(edit)opportunities=opportunities.map(x=>x.id===o.id?v:x);else opportunities.unshift(v);persist();closeModal();render();toast('Oportunidade salva.')};
-}
-function editOpp(id){let o=opportunities.find(x=>x.id===id);if(o)newOpp(o)}
-function moveOpp(id,stage){opportunities=opportunities.map(o=>o.id===id?{...o,stage}:o);persist();render();toast('Etapa atualizada.')}
-function newTask(){
- showModal(`<h2>Nova tarefa</h2><form id="taskForm"><label>Descrição</label><input name="title" required><div class="formgrid"><div><label>Responsável</label><input name="owner" placeholder="Nome"></div><div><label>Data</label><input name="date" type="date" value="${today()}"></div></div><label>Observação</label><textarea name="note" rows="3"></textarea><div class="actions"><button class="btn">Salvar tarefa</button><button type="button" class="btn secondary" onclick="closeModal()">Cancelar</button></div></form>`);
- $('#taskForm').onsubmit=e=>{e.preventDefault();let v=Object.fromEntries(new FormData(e.target));tasks.push({...v,id:Date.now(),done:false});persist();closeModal();render();toast('Tarefa criada.')};
-}
-function taskList(list){
- if(!list.length)return '<div class="empty">Nenhuma atividade cadastrada.</div>';
- return `<div class="tablewrap"><table><thead><tr><th>Atividade</th><th>Responsável</th><th>Data</th><th>Status</th><th>Ação</th></tr></thead><tbody>${list.map(t=>`<tr><td>${esc(t.title)}<br><small style="color:#8b999d">${esc(t.note||'')}</small></td><td>${esc(t.owner||'—')}</td><td>${t.date||'—'}</td><td><span class="pill ${t.done?'green':'orange'}">${t.done?'Concluída':'Pendente'}</span></td><td>${t.done?'':`<button class="btn secondary" onclick="doneTask(${t.id})">Concluir</button>`}</td></tr>`).join('')}</tbody></table></div>`;
-}
-function doneTask(id){tasks=tasks.map(t=>t.id===id?{...t,done:true}:t);persist();render();toast('Tarefa concluída.')}
-function newDoc(){
- showModal(`<h2>Cadastrar documento</h2><form id="docForm"><label>Nome</label><input name="name" required><label>Categoria</label><select name="category"><option>Habilitação jurídica</option><option>Fiscal e trabalhista</option><option>Econômico-financeira</option><option>Qualificação técnica</option><option>Outros</option></select><label>Data de validade</label><input type="date" name="date"><div class="actions"><button class="btn">Cadastrar</button><button type="button" class="btn secondary" onclick="closeModal()">Cancelar</button></div></form>`);
- $('#docForm').onsubmit=e=>{e.preventDefault();docs.push({...Object.fromEntries(new FormData(e.target)),id:Date.now()});persist();closeModal();render();toast('Documento cadastrado.')};
-}
-function deleteDoc(id){if(confirm('Excluir este cadastro?')){docs=docs.filter(d=>d.id!==id);persist();render()}}
-function calculate(){
- let cost=Number($('#cost')?.value||0),fees=Number($('#fees')?.value||0)/100,margin=Number($('#margin')?.value||0)/100;
- let el=$('#priceResult');if(!el)return;
- if(fees+margin>=1||cost<0){el.innerHTML='<div class="result" style="color:var(--red)">Percentuais inválidos. A soma deve ser inferior a 100%.</div>';return}
- let price=cost/(1-fees-margin);
- el.innerHTML=`<div class="result">Preço mínimo: ${money(price)}</div><p style="font-size:12px;color:#718188">Custo: ${money(cost)} · Encargos: ${money(price*fees)} · Margem: ${money(price*margin)}</p>`;
-}
-function checkBid(){
- let bid=Number($('#bid').value),limit=Number($('#limit').value);
- let el=$('#bidResult');
- if(!bid||!limit){el.innerHTML='<p>Preencha o lance e o limite mínimo.</p>';return}
- el.innerHTML=bid<limit?'<div class="result" style="color:var(--red)">ATENÇÃO: lance abaixo do limite informado.</div>':'<div class="result">Lance dentro do limite informado.</div>';
-}
-function saveCompany(){
- company={name:$('#coName').value,cnpj:$('#coCnpj').value,email:$('#coEmail').value,phone:$('#coPhone').value,address:$('#coAddress').value};persist();toast('Cadastro salvo.')
-}
-function exportData(){
- let data={opportunities,tasks,docs,company,exportedAt:new Date().toISOString()};
- let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='elite-pregao-pro-dados.json';a.click();URL.revokeObjectURL(a.href);
-}
-function showModal(html){$('#modal').innerHTML=html;$('#modalbg').style.display='flex'}
-function closeModal(){$('#modalbg').style.display='none'}
-$('#modalbg').addEventListener('click',e=>{if(e.target.id==='modalbg')closeModal()});
-render();
+quickDate(0);
+setMode('publicadas');
 </script>
 </body>
 </html>
-
